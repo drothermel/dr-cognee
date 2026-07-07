@@ -1,10 +1,9 @@
 """Build the Cognee payload from a workspace and push it idempotently."""
 
 import hashlib
-import json
 from typing import Protocol
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, RootModel
 
 from dr_cognee.models import DistilledRecord, Relevance, SourceRecord, SourceStatus
 from dr_cognee.sources import SourceStore
@@ -115,9 +114,15 @@ def build_payloads(workspace: Workspace, store: SourceStore) -> list[IngestItem]
     return items
 
 
+class IngestManifest(RootModel[dict[str, str]]):
+    """Maps ingested artifact key -> sha256 of the text last pushed."""
+
+
 def _load_manifest(workspace: Workspace) -> dict[str, str]:
     if workspace.ingest_manifest_file.exists():
-        return json.loads(workspace.ingest_manifest_file.read_text())
+        return IngestManifest.model_validate_json(
+            workspace.ingest_manifest_file.read_text()
+        ).root
     return {}
 
 
@@ -138,7 +143,8 @@ def ingest_workspace(
         client.add_text(dataset_id, [item.text], node_set=item.node_set)
         manifest[item.key] = digest
         result.pushed += 1
-    workspace.ingest_manifest_file.write_text(json.dumps(manifest, indent=1, sort_keys=True))
+    manifest_json = IngestManifest(dict(sorted(manifest.items()))).model_dump_json(indent=1)
+    workspace.ingest_manifest_file.write_text(manifest_json)
     if result.pushed:
         client.cognify(dataset_id, background=True)
         if wait:

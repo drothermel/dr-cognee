@@ -1,6 +1,5 @@
 """drc: deep-research toolbox CLI over a per-topic workspace."""
 
-import json
 import os
 import re
 from datetime import UTC, datetime
@@ -8,6 +7,7 @@ from pathlib import Path
 
 import typer
 from firecrawl import Firecrawl
+from pydantic import TypeAdapter
 
 from dr_cognee.cognee_client import DEFAULT_SEARCH_TYPE, CogneeClient
 from dr_cognee.distill import DISTILL_MODEL, AnthropicDistillClient, distill_pending
@@ -22,7 +22,7 @@ from dr_cognee.models import (
     TopicConfig,
 )
 from dr_cognee.sources import SourceStore, source_id
-from dr_cognee.workspace import SYNTHESIS_DIR, Workspace
+from dr_cognee.workspace import Workspace
 
 DEFAULT_WORKSPACE_ROOT = Path("research")
 
@@ -136,6 +136,9 @@ def scrape_cmd(
         target_ids += [r.id for r in store.pending(SourceStatus.FOUND)]
     if not target_ids:
         raise typer.BadParameter("Pass ids or --all-found")
+    known = store.load()
+    for unknown in [i for i in target_ids if i not in known]:
+        typer.echo(f"{unknown}  UNKNOWN (not in sources.jsonl)")
     updated = scrape(store, ws, target_ids, firecrawl_client())
     for record in updated:
         marker = "ok" if record.status == SourceStatus.SCRAPED else f"FAIL ({record.error})"
@@ -212,7 +215,7 @@ def query(
     if isinstance(results, str):
         typer.echo(results)
     else:
-        typer.echo(json.dumps(results, indent=1, default=str))
+        typer.echo(TypeAdapter(object).dump_json(results, indent=1).decode())
 
 
 @app.command()
@@ -232,7 +235,7 @@ def status(workspace: Path | None = WorkspaceOption) -> None:
         typer.echo("open depth flags:")
         for record in flags:
             typer.echo(f"  {record.id}  {record.title}: {record.depth_note}")
-    synthesized = {p.stem for p in (ws.root / SYNTHESIS_DIR).glob("*.md")}
+    synthesized = {p.stem for p in ws.synthesis_dir.glob("*.md")}
     thin = [f for f in ws.config.facets if f not in synthesized]
     if thin:
         typer.echo(f"facets without synthesis: {', '.join(thin)}")

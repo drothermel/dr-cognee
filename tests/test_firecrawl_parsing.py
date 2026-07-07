@@ -1,9 +1,9 @@
-import json
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
 import pytest
+from pydantic import TypeAdapter
 
 from dr_cognee.firecrawl_ops import harvest, scrape, search_hits_to_records
 from dr_cognee.models import (
@@ -16,7 +16,9 @@ from dr_cognee.models import (
 from dr_cognee.sources import SourceStore, source_id
 from dr_cognee.workspace import Workspace
 
-FIXTURE = json.loads((Path(__file__).parent / "fixtures" / "firecrawl_search.json").read_text())
+FIXTURE = TypeAdapter(dict[str, Any]).validate_json(
+    (Path(__file__).parent / "fixtures" / "firecrawl_search.json").read_text()
+)
 QUERY = QuerySpec(query="knowledge graph memory for AI agents", sources=["web", "news"])
 
 
