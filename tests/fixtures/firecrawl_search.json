@@ -1,0 +1,52 @@
+{
+ "web": [
+  {
+   "url": "https://theneuralmaze.substack.com/p/building-agent-memory-with-knowledge",
+   "title": "Building Agent Memory with Knowledge Graphs - The Neural Maze",
+   "description": "A knowledge graph stores information not as text chunks but as a network. The atomic unit is the triple: a subject, a relationship, and an ...",
+   "category": null
+  },
+  {
+   "url": "https://www.reddit.com/r/AI_Agents/comments/1ts3nq2/i_spent_a_year_building_agent_memory_on_knowledge/",
+   "title": "I spent a year building agent memory on knowledge graphs ... - Reddit",
+   "description": "I spent the past year building a unified memory layer for my AI agents using knowledge graphs and ontologies on top of MongoDB.",
+   "category": null
+  },
+  {
+   "url": "https://medium.com/@saeedhajebi/building-ai-agents-with-knowledge-graph-memory-a-comprehensive-guide-to-graphiti-3b77e6084dec",
+   "title": "Building AI Agents with Knowledge Graph Memory - Medium",
+   "description": "By automatically extracting structured knowledge from unstructured interactions, Graphiti enables AI agents to develop human-like memory ...",
+   "category": null
+  }
+ ],
+ "news": [
+  {
+   "title": "Context graphs: Why AI agents need three types of memory",
+   "url": "https://neo4j.com/blog/agentic-ai/context-graph-ai-agent-memory/",
+   "snippet": "Learn how context graphs store knowledge, conversation, and decisions to give AI agents a reliable memory that improves over time.",
+   "date": "1 month ago",
+   "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS7NrQUHSiYsBvuUVu7T1nKG11-kxe9dkIqvBcZVm8NilXxtPOUp9yTCr4&usqp=CAI&s",
+   "position": 1,
+   "category": null
+  },
+  {
+   "title": "The Race to Build AI\u2019s Context Layer Is Really About Meaning",
+   "url": "https://hackernoon.com/the-race-to-build-ais-context-layer-is-really-about-meaning",
+   "snippet": "Context graphs, graph memory, and ontologies for AI are converging. What does this mean for enterprise AI in 2026?",
+   "date": "6 days ago",
+   "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT5xwY9durszVFL2wh5CAmG4X1xPXpZNOotT0McI9VVUYqnCrCFtJ121RI&usqp=CAI&s",
+   "position": 2,
+   "category": null
+  },
+  {
+   "title": "AI Agent Memory Learns Across Sessions: Huawei Framework Ships With China Data Risk",
+   "url": "https://www.techtimes.com/articles/319523/20260702/ai-agent-memory-learns-across-sessions-huawei-framework-ships-china-data-risk.htm",
+   "snippet": "AI agent memory that grows across sessions: Huawei's openJiuwen released JiuwenMemory on July 1, 2026 with a four-layer stack,...",
+   "date": "5 days ago",
+   "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQE3PL2ZwaB44xt1eE1nfgGCBtBihbF4bMybSFRrKWkwNdp2086M-T1yuc&usqp=CAI&s",
+   "position": 3,
+   "category": null
+  }
+ ],
+ "images": null
+}
