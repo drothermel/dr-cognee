@@ -7,8 +7,20 @@ authors = [
     { name = "Danielle Rothermel", email = "danielle.rothermel@gmail.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "anthropic>=0.116.0",
+    "firecrawl-py>=4.31.0",
+    "httpx>=0.28.1",
+    "pydantic>=2.13.4",
+    "pyyaml>=6.0.3",
+    "typer>=0.26.8",
+]
 
 [build-system]
 requires = ["uv_build>=0.11.25,<0.12.0"]
 build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
