@@ -2,3 +2,6 @@
 .DS_STORE
 __pycache__/
 *.swp
+
+# generated research workspaces
+research/
