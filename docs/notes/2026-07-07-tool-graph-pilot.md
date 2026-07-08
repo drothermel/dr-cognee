@@ -88,3 +88,29 @@ capability map per facet → ingest+cognify → verification queries → report.
   cognify cost — candidate for exclusion/split if credits stay tight.
 - Synthesis quality high: two-axis sandbox×approval model, ~200-key config.toml
   inventory, MCP both directions, hooks/skills/plugins/subagents inventory.
+
+## claude-code run
+
+- llms.txt (code.claude.com/docs/llms.txt): flat manifest, 163 pages; pulled 147, skipped
+  16 release-notes weeklies + changelog per the >150-page guidance. To filter, the agent
+  had to serve a trimmed manifest via localhost http.server because pull-docs requires a
+  hosted manifest URL. Backlog: accept a local manifest file (--llms-file) for filtering.
+- 173 artifacts staged+pushed in one ingest; cognify blocked ($7.24 remaining).
+  Recovery: `drc cognify -w research/claude-code`.
+
+## Final state across all six tools
+
+| Tool | Artifacts | Cognified | Graph-verified |
+|---|---|---|---|
+| pydantic | 105 | yes | yes (extension mechanisms) |
+| polars | 95 | yes | yes (extension points) |
+| pydantic-ai | 188 (+2 pending) | yes | yes (tools/output control) |
+| cognee | 216 | yes | yes (graph customization) |
+| codex-cli | 135 | blocked (credits) | pending |
+| claude-code | 173 | blocked (credits) | pending |
+
+Plus deep-research acceptance dataset `agent-graph-knowledge-base` (119 artifacts, cognified,
+report complete). To finish after topping up Cognee credits:
+`uv run drc cognify -w research/codex-cli && uv run drc cognify -w research/claude-code`
+then the verification queries in each log.md, and `drc ingest -w research/pydantic-ai` for
+its report tail.
