@@ -77,8 +77,10 @@ great! so now, I'd like you to brainstorm what types of visualization tools woul
 
 Do an extensive brainstorm process that starts by making your own docs/viz subdir and writing a framework for how you'll think thorugh this systematically and do market research for different ideas and best methods for visualization and ux of those methods + how to operationalize them.  Then orchestrate subagents to actually do the research and some of the brainstorming (or you can own that part) and make documents as you go for coherent topics, clean case studies and examples, logs of the investigation, etc.  Then choose 3 top usecases to really spec out.  and for each of them, do a full design process from clarifying the goal and audience and context, to defining the problems that need to be solved and the constraints, to designing the ux flow, to designing the ui, to designing the operationalization.  the final result at the end of this should be 3 clean reports (as html files) that pitch the three ideas separate + one that layous out the full research process at a high level + the result of reflecting on your process and coming up with lessons learned and alternative approaches you would have taken if you did this again.  Make the html pages for someone wiht a very wide monitor (thats pretty tall too) so it can really use the full canvas and scroll in multiple directions.
 
-Does this request make sense? before doing any more exploration and you recap what I'm asking you for?
+###    USER
 
+Does this request make sense? before doing any more exploration and you recap what I'm asking you for?
+note that I'm about to go on a long walk, so either stop and discuss with me now if we need to discuss, or go ahead and execute through the full task! happy brainstorming!
 
 ###  ASSISTANT  
 
