@@ -67,3 +67,13 @@ capability map per facet → ingest+cognify → verification queries → report.
 - Recurring quirk: GRAPH_COMPLETION answers embellish "practitioner evidence" framing
   (LinkedIn/ServiceNow examples not in sources) across datasets — treat graph answers as
   organizers, verify claims against distilled records (same caveat as acceptance run).
+
+## cognee run
+
+- llms.txt is a manifest-of-manifests (5 shard indexes); vendored llms_mirror rejects
+  manifest URLs not ending in `llms.txt` (`ValueError` at llms_mirror.py:178), so shard
+  pages were registered via fetch + add-source (176 pages, 0 failures). Backlog: relax
+  manifest naming upstream in dr-notion (accept llms-*.txt shards).
+- Deliberately skipped the 122-page REST-endpoint-stub shard to stay under the credit
+  gate; 216 artifacts cognified successfully, verification query PASS.
+- Repo has no real docs tree — docs live on docs.cognee.ai only; README added manually.
