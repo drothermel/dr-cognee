@@ -8,7 +8,11 @@ from pydantic import BaseModel, ConfigDict
 
 from dr_cognee.models import SourceCategory, SourceRecord, SourceStatus
 from dr_cognee.sources import SourceStore, source_id
-from dr_cognee.vendored.github_docs_mirror import mirror_github_docs
+from dr_cognee.vendored.github_docs_mirror import (
+    collect_markdown_pages,
+    mirror_github_docs,
+    parse_github_tree_url,
+)
 from dr_cognee.vendored.llms_mirror import MirrorStatus, mirror_manifest
 from dr_cognee.workspace import Workspace
 
@@ -93,7 +97,19 @@ def pull_github_docs(
     mirror_root = workspace.root / MIRROR_DIR / GITHUB_MIRROR_SUBDIR
     checkout_root = workspace.root / MIRROR_DIR / GITHUB_CHECKOUT_SUBDIR
     summary = mirror_github_docs(tree_url, mirror_root, checkout_root, force=True)
-    for page in summary.pages:
+    pages = summary.pages
+    if not pages:
+        # A repo-root mkdocs.yml whose nav doesn't map onto docs_path filters every
+        # entry out; re-collect without the config to walk the tree directly.
+        pages = collect_markdown_pages(
+            source=parse_github_tree_url(tree_url),
+            repo_root=summary.checkout_path,
+            output_path=summary.output_path,
+            commit=summary.commit,
+            include_private=False,
+            mkdocs_config_path=None,
+        )
+    for page in pages:
         _register_doc(
             store,
             workspace,
