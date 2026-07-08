@@ -2,7 +2,7 @@
 
 The repo currently contains:
 1. An attempt to use Firecrawl to do a deep research pass, ingest it into the Cognee graph and improve it before finally returning a report.
-2. A almost entirely autonomous research flow for ways to visualize the complex workflow and output.
+2. An almost entirely autonomous research flow for ways to visualize the complex workflow and output.
 
 ## Results
 
