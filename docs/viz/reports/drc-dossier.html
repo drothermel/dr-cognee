@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>drc dossier — the Report &amp; Evidence Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   drc dossier — pitch report
+   design family: dark #0d1117 / panels #161b22 / borders #30363d
+   accent pair: evidence green #7ee787 · doubt rose #ff7b72
+   ============================================================ */
+:root {
+  --bg: #0d1117;
+  --panel: #161b22;
+  --panel-2: #1c2129;
+  --border: #30363d;
+  --border-soft: #21262d;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --green: #7ee787;
+  --green-dim: rgba(126, 231, 135, 0.14);
+  --green-line: rgba(126, 231, 135, 0.45);
+  --rose: #ff7b72;
+  --rose-dim: rgba(255, 123, 114, 0.13);
+  --rose-line: rgba(255, 123, 114, 0.45);
+  --amber: #e3b341;
+  --amber-dim: rgba(227, 179, 65, 0.12);
+  --blue: #79b8ff;
+  --serif: "Source Serif 4", Georgia, serif;
+  --sans: "Space Grotesk", system-ui, sans-serif;
+  --mono: "Fira Code", ui-monospace, monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.55;
+  min-width: 1400px;
+}
+code, pre, .mono { font-family: var(--mono); font-variant-ligatures: contextual; font-feature-settings: "liga" 1, "calt" 1; }
+::selection { background: rgba(126, 231, 135, 0.28); }
+
+.canvas { width: 3560px; max-width: 96vw; margin: 0 auto; padding: 0 40px 160px; }
+section { margin-top: 130px; }
+
+/* ---- fixed nav ---- */
+nav.sitenav {
+  position: fixed; top: 18px; left: 18px; z-index: 500;
+  background: rgba(22, 27, 34, 0.94); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 14px; backdrop-filter: blur(6px);
+  font-family: var(--mono); font-size: 11.5px; line-height: 2;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+}
+nav.sitenav .navtitle { color: var(--green); font-weight: 600; letter-spacing: 0.04em; margin-bottom: 4px; display: block; }
+nav.sitenav a { display: block; color: var(--muted); text-decoration: none; }
+nav.sitenav a:hover { color: var(--text); }
+nav.sitenav a span.k { color: var(--rose); margin-right: 7px; }
+
+/* ---- shared bits ---- */
+.kicker {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--green); margin-bottom: 14px;
+}
+.kicker.rose { color: var(--rose); }
+h2.act {
+  font-family: var(--sans); font-weight: 700; font-size: 44px;
+  letter-spacing: -0.01em; margin-bottom: 10px;
+}
+h2.act em { font-style: normal; color: var(--green); }
+h2.act em.r { color: var(--rose); }
+.act-sub { font-family: var(--serif); font-size: 20px; color: var(--muted); max-width: 1100px; margin-bottom: 44px; }
+.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; }
+
+/* evidence chips (citing research docs) */
+.ev {
+  display: inline-block; font-family: var(--mono); font-size: 10.5px;
+  color: var(--muted); border: 1px solid var(--border); border-radius: 999px;
+  padding: 1px 9px 2px; margin: 2px 3px 2px 0; white-space: nowrap;
+  background: rgba(13, 17, 23, 0.6);
+}
+.ev b { color: var(--green); font-weight: 600; }
+.ev.r b { color: var(--rose); }
+
+/* citation chips (in the mockup) */
+.chip {
+  display: inline-block; position: relative; font-family: var(--mono);
+  font-size: 11px; line-height: 1.2; padding: 2px 8px 3px; border-radius: 999px;
+  vertical-align: 2px; margin: 0 2px; cursor: pointer; white-space: nowrap;
+  transition: box-shadow 0.12s ease, transform 0.12s ease;
+}
+.chip.use { background: var(--green-dim); border: 1px solid var(--green); color: var(--green); }
+.chip.vendor { background: transparent; border: 1px solid var(--rose-line); color: var(--rose); }
+.chip.docs { background: transparent; border: 1px solid rgba(121, 184, 255, 0.5); color: var(--blue); }
+.chip.plain { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+.chip.gap { background: var(--amber-dim); border: 1px dashed var(--amber); color: var(--amber); }
+.chip.synth { background: transparent; border: 1px solid rgba(121, 184, 255, 0.5); color: var(--blue); border-style: dotted; }
+.chip:hover { box-shadow: 0 0 0 3px rgba(126, 231, 135, 0.15); transform: translateY(-1px); }
+.chip.vendor:hover, .chip.gap:hover { box-shadow: 0 0 0 3px rgba(255, 123, 114, 0.13); }
+
+/* valence badges */
+.badge {
+  display: inline-block; font-family: var(--mono); font-size: 10px;
+  font-weight: 600; letter-spacing: 0.08em; padding: 1px 8px 2px;
+  border-radius: 4px; vertical-align: 1px;
+}
+.badge.use { background: var(--green-dim); color: var(--green); border: 1px solid var(--green-line); }
+.badge.vendor { background: transparent; color: var(--rose); border: 1px solid var(--rose-line); }
+.badge.docs { background: transparent; color: var(--blue); border: 1px solid rgba(121,184,255,0.4); }
+.badge.none { background: transparent; color: var(--muted); border: 1px dashed var(--border); }
+.badge.warn { background: var(--amber-dim); color: var(--amber); border: 1px dashed var(--amber); }
+
+/* ============ ACT 1 · HERO ============ */
+header.hero { padding-top: 120px; display: grid; grid-template-columns: 1.5fr 1fr; gap: 80px; align-items: end; }
+.hero h1 {
+  font-family: var(--sans); font-weight: 700; font-size: 96px; line-height: 1.02;
+  letter-spacing: -0.025em;
+}
+.hero h1 .cmd { font-family: var(--mono); font-weight: 500; font-size: 0.42em; color: var(--muted); display: block; margin-bottom: 18px; }
+.hero h1 .cmd b { color: var(--green); font-weight: 600; }
+.hero h1 em { font-style: normal; background: linear-gradient(100deg, var(--green), #b3f0b8); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hero .oneliner {
+  font-family: var(--serif); font-size: 30px; font-style: italic; line-height: 1.45;
+  color: var(--text); margin-top: 34px; max-width: 900px;
+}
+.hero .oneliner b { color: var(--green); font-style: normal; }
+.hero .oneliner .r { color: var(--rose); font-style: italic; }
+.herostats { display: grid; gap: 18px; }
+.stat { padding: 26px 30px; }
+.stat .n { font-family: var(--mono); font-size: 46px; font-weight: 600; color: var(--green); line-height: 1.1; }
+.stat.rosey .n { color: var(--rose); }
+.stat .d { font-family: var(--sans); font-size: 15px; color: var(--muted); margin-top: 6px; }
+.stat .src { display: block; margin-top: 10px; }
+.hero-footer { grid-column: 1 / -1; display: flex; gap: 14px; align-items: center; margin-top: 10px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.hero-footer .dot { color: var(--border); }
+
+/* ============ ACT 2 · THE MOMENT ============ */
+.postures { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-bottom: 46px; }
+.posture { padding: 30px 32px; position: relative; overflow: hidden; }
+.posture::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--green); }
+.posture.audit::before { background: var(--rose); }
+.posture.ref::before { background: var(--blue); }
+.posture h3 { font-size: 24px; font-weight: 600; margin-bottom: 4px; }
+.posture .key { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 14px; }
+.posture p { font-family: var(--serif); font-size: 17px; color: var(--text); }
+.posture p b { color: var(--green); }
+.posture.audit p b { color: var(--rose); }
+.posture.ref p b { color: var(--blue); }
+.posture .q { font-family: var(--serif); font-style: italic; color: var(--muted); display: block; margin-top: 12px; font-size: 15.5px; }
+
+.reality { display: grid; grid-template-columns: 1.15fr 1fr 1.2fr; gap: 28px; }
+.reality .cell { padding: 30px 34px; }
+.reality h4 { font-family: var(--mono); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 18px; }
+.cite-bar { display: grid; grid-template-columns: 300px 1fr 90px; align-items: center; gap: 16px; margin-bottom: 14px; font-family: var(--mono); font-size: 12.5px; }
+.cite-bar .lbl { color: var(--text); }
+.cite-bar .lbl small { display: block; color: var(--muted); font-size: 10.5px; }
+.cite-bar .bar { height: 16px; border-radius: 4px; background: var(--green); box-shadow: 0 0 18px rgba(126,231,135,0.25); }
+.cite-bar.thin .bar { background: var(--rose); width: 3% !important; min-width: 8px; box-shadow: 0 0 18px rgba(255,123,114,0.25); }
+.cite-bar .num { text-align: right; color: var(--green); font-weight: 600; }
+.cite-bar.thin .num { color: var(--rose); }
+.reality .verdictline { margin-top: 20px; font-family: var(--serif); font-size: 16.5px; color: var(--muted); }
+.reality .verdictline b { color: var(--text); }
+.fixlist { list-style: none; }
+.fixlist li { display: grid; grid-template-columns: 30px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px dashed var(--border-soft); font-family: var(--serif); font-size: 16.5px; }
+.fixlist li:last-child { border-bottom: none; }
+.fixlist .fx { font-family: var(--mono); color: var(--green); font-size: 14px; padding-top: 2px; }
+.fixlist b { color: var(--green); }
+.honesty { border-color: var(--green-line); background: linear-gradient(180deg, rgba(126,231,135,0.05), var(--panel)); }
+.honesty p { font-family: var(--serif); font-size: 18.5px; line-height: 1.6; }
+.honesty p b { color: var(--green); }
+.honesty p .r { color: var(--rose); }
+.honesty .tag { font-family: var(--mono); font-size: 11px; color: var(--green); letter-spacing: 0.14em; text-transform: uppercase; display: block; margin-bottom: 14px; }
+
+/* ============ ACT 3 · LADDERS ============ */
+.ladders { display: grid; grid-template-columns: 1.35fr 1.1fr 0.95fr; gap: 28px; }
+.ladder { padding: 32px 34px; }
+.ladder h3 { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+.ladder .sub { font-family: var(--serif); font-size: 15.5px; color: var(--muted); margin-bottom: 24px; }
+.rung { display: grid; grid-template-columns: 118px 1fr; gap: 18px; padding: 15px 0; border-bottom: 1px dashed var(--border-soft); align-items: start; }
+.rung:last-of-type { border-bottom: none; }
+.rung .cost { font-family: var(--mono); font-size: 11px; color: var(--green); padding-top: 3px; line-height: 1.5; }
+.rung .cost.r { color: var(--rose); }
+.rung .cost.m { color: var(--muted); }
+.rung .what b { display: block; font-size: 16px; margin-bottom: 2px; }
+.rung .what p { font-family: var(--serif); font-size: 15px; color: var(--muted); }
+.ladder .note { margin-top: 20px; font-family: var(--mono); font-size: 11.5px; color: var(--muted); border-top: 1px solid var(--border-soft); padding-top: 14px; line-height: 1.7; }
+.ladder .note b { color: var(--green); }
+.ladder .note b.r { color: var(--rose); }
+
+/* ============ ACT 4 · THE MOCKUP ============ */
+.mockwrap { position: relative; }
+.mock {
+  background: #0a0e13; border: 1px solid var(--border); border-radius: 14px;
+  overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.55);
+}
+.mock-titlebar {
+  display: flex; align-items: center; gap: 20px; padding: 13px 24px;
+  background: var(--panel); border-bottom: 1px solid var(--border);
+  font-family: var(--mono); font-size: 12.5px;
+}
+.mock-titlebar .traffic { display: flex; gap: 7px; }
+.mock-titlebar .traffic i { width: 11px; height: 11px; border-radius: 50%; background: var(--border); display: block; }
+.mock-titlebar .loc { color: var(--muted); }
+.mock-titlebar .loc b { color: var(--text); font-weight: 500; }
+.modetabs { display: flex; gap: 4px; margin-left: 26px; }
+.modetab {
+  font-family: var(--mono); font-size: 12px; padding: 4px 16px; border-radius: 6px;
+  border: 1px solid transparent; color: var(--muted); cursor: pointer; background: none;
+}
+.modetab:hover { color: var(--text); border-color: var(--border); }
+.modetab.active { color: var(--green); border-color: var(--green-line); background: var(--green-dim); }
+.mock-titlebar .claimstat { margin-left: auto; color: var(--muted); }
+.mock-titlebar .claimstat b.g { color: var(--green); } .mock-titlebar .claimstat b.a { color: var(--amber); } .mock-titlebar .claimstat b.r { color: var(--rose); }
+
+.mockgrid { display: grid; grid-template-columns: 390px 940px 470px 1fr; min-height: 1060px; }
+.mockcol { border-right: 1px solid var(--border-soft); padding: 26px 26px 34px; }
+.mockcol:last-child { border-right: none; }
+.mockcol h5 {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 18px;
+}
+
+/* source rail */
+.rail-filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.rail-filter { font-family: var(--mono); font-size: 10.5px; color: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; cursor: pointer; }
+.rail-filter.on { color: var(--green); border-color: var(--green-line); background: var(--green-dim); }
+.srcrow {
+  display: grid; grid-template-columns: 16px 78px 1fr 44px; gap: 10px; align-items: center;
+  padding: 7px 8px; border-radius: 7px; font-family: var(--mono); font-size: 11.5px; cursor: pointer;
+}
+.srcrow:hover { background: var(--panel-2); }
+.srcrow.hot { background: var(--green-dim); outline: 1px solid var(--green-line); }
+.srcrow .vd { font-size: 12px; text-align: center; }
+.srcrow .vd.use { color: var(--green); } .srcrow .vd.ven { color: var(--rose); } .srcrow .vd.doc { color: var(--blue); } .srcrow .vd.non { color: var(--muted); }
+.srcrow .sid { color: var(--text); }
+.srcrow .dom { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.srcrow .rel { color: var(--muted); text-align: right; }
+.railmore { font-family: var(--mono); font-size: 11px; color: var(--muted); padding: 12px 8px 0; }
+.raillegend { margin-top: 22px; border-top: 1px solid var(--border-soft); padding-top: 14px; font-family: var(--mono); font-size: 10.5px; color: var(--muted); line-height: 2; }
+
+/* report column */
+.reportcol { background: #0d1117; }
+.report-h { font-family: var(--serif); font-weight: 700; font-size: 30px; letter-spacing: -0.01em; margin: 6px 0 6px; }
+.report-meta { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 30px; }
+.report-prose { font-family: var(--serif); font-size: 18px; line-height: 1.78; max-width: 70ch; color: var(--text); }
+.report-prose h6 { font-family: var(--serif); font-size: 22px; font-weight: 700; margin: 26px 0 14px; }
+.report-prose p { margin-bottom: 20px; }
+.report-prose .rank { font-weight: 700; color: var(--text); }
+.report-prose .rank .nm { color: var(--green); }
+.gap-sent {
+  border-bottom: 2px dashed var(--amber); padding-bottom: 1px; position: relative; cursor: help;
+  background: linear-gradient(180deg, transparent 82%, var(--amber-dim) 82%);
+}
+.report-prose .footline { font-family: var(--mono); font-size: 11px; color: var(--muted); border-top: 1px solid var(--border-soft); padding-top: 14px; margin-top: 34px; }
+
+/* hover card (CSS-only, on the a3f92c chip) */
+.hovercard {
+  position: absolute; left: -20px; top: 26px; width: 460px; z-index: 60;
+  background: var(--panel); border: 1px solid var(--green-line); border-radius: 10px;
+  padding: 16px 18px; box-shadow: 0 18px 50px rgba(0,0,0,0.65);
+  opacity: 0; visibility: hidden; transform: translateY(-6px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+  font-family: var(--sans); white-space: normal; cursor: default;
+}
+.chip:hover .hovercard, .chip:focus .hovercard { opacity: 1; visibility: visible; transform: translateY(0); }
+.hovercard .hc-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+.hovercard .hc-title { font-size: 14px; font-weight: 600; color: var(--text); }
+.hovercard .hc-meta { font-family: var(--mono); font-size: 10.5px; color: var(--muted); margin-bottom: 10px; }
+.hovercard .hc-quote { font-family: var(--serif); font-size: 14.5px; font-style: italic; color: var(--text); line-height: 1.55; border-left: 3px solid var(--green); padding-left: 12px; margin-bottom: 10px; }
+.hovercard .hc-foot { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+.hovercard .hc-foot b { color: var(--green); }
+
+/* margin notes */
+.margincol { background: #0b0f14; }
+.sidenote { padding: 14px 16px; border-left: 3px solid var(--green); background: var(--panel); border-radius: 0 8px 8px 0; margin-bottom: 22px; }
+.sidenote.vendor { border-left-color: var(--rose-line); }
+.sidenote.docs { border-left-color: rgba(121,184,255,0.5); }
+.sidenote.gap { border-left-color: var(--amber); border-left-style: dashed; background: rgba(227,179,65,0.05); }
+.sidenote .sn-id { font-family: var(--mono); font-size: 10.5px; color: var(--muted); display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.sidenote .sn-q { font-family: var(--serif); font-size: 14px; font-style: italic; line-height: 1.5; color: var(--text); }
+.sidenote .sn-src { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 8px; }
+.marginrule { font-family: var(--mono); font-size: 10.5px; color: var(--muted); border-top: 1px solid var(--border-soft); padding-top: 14px; line-height: 1.9; }
+.marginrule b { color: var(--green); }
+
+/* evidence panels */
+.evcol { background: #0b0f14; }
+.evpanel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 20px 22px; margin-bottom: 22px; }
+.evpanel.hot { border-color: var(--green-line); }
+.evpanel .ep-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-family: var(--mono); font-size: 12px; margin-bottom: 14px; }
+.evpanel .ep-h .fn { color: var(--green); font-weight: 600; }
+.evpanel .ep-h .tag { color: var(--muted); font-size: 10.5px; }
+.dr-meta { font-family: var(--mono); font-size: 11px; color: var(--muted); line-height: 1.9; margin-bottom: 14px; }
+.dr-meta b { color: var(--text); font-weight: 500; }
+.dr-sec { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 14px 0 8px; }
+.dr-sec b { color: var(--green); }
+.dr-list { list-style: none; font-family: var(--serif); font-size: 14.5px; line-height: 1.55; }
+.dr-list li { padding: 5px 0 5px 22px; position: relative; color: var(--text); }
+.dr-list li::before { content: "–"; position: absolute; left: 4px; color: var(--muted); font-family: var(--mono); }
+.dr-list li.lit { background: var(--green-dim); border-radius: 6px; }
+.dr-list li.lit::before { content: "▸"; color: var(--green); }
+.dr-list.uses li::before { content: "“"; font-family: var(--serif); color: var(--green); font-size: 18px; top: 1px; }
+.dr-ents { margin-top: 12px; }
+.dr-ents .ent { display: inline-block; font-family: var(--mono); font-size: 10.5px; color: var(--blue); border: 1px solid rgba(121,184,255,0.35); border-radius: 999px; padding: 1px 9px; margin: 2px 3px 2px 0; }
+.contentview { font-family: var(--mono); font-size: 12.5px; line-height: 1.85; color: var(--muted); background: #0d1117; border: 1px solid var(--border-soft); border-radius: 8px; padding: 16px 18px; }
+.contentview .ln { color: #495059; user-select: none; display: inline-block; width: 42px; }
+.contentview .hl { background: var(--green-dim); color: var(--text); box-shadow: inset 3px 0 0 var(--green); display: block; padding-left: 6px; margin-left: -6px; }
+.fuzz { font-family: var(--mono); font-size: 10.5px; color: var(--amber); border: 1px solid rgba(227,179,65,0.4); border-radius: 4px; padding: 1px 8px; }
+.idle-note { font-family: var(--mono); font-size: 10.5px; color: var(--muted); line-height: 1.8; }
+.idle-note b { color: var(--green); }
+
+/* bottom strip: audit / controls */
+.mockbottom { border-top: 1px solid var(--border); background: #0b0f14; padding: 24px 30px 30px; }
+.bottomview { display: none; }
+.bottomview.active { display: block; }
+.audit-head { display: flex; align-items: baseline; gap: 26px; font-family: var(--mono); font-size: 12px; margin-bottom: 16px; }
+.audit-head .t { color: var(--text); font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; font-size: 11px; }
+.audit-head .cov b.g { color: var(--green); } .audit-head .cov b.a { color: var(--amber); } .audit-head .cov b.r { color: var(--rose); }
+.audit-head .cov { color: var(--muted); }
+.audit-head .sort { margin-left: auto; color: var(--rose); }
+table.audit { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.audit th { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); text-align: left; padding: 8px 14px; border-bottom: 1px solid var(--border); }
+table.audit td { padding: 11px 14px; border-bottom: 1px solid var(--border-soft); vertical-align: top; }
+table.audit td.claim { font-family: var(--serif); font-size: 15px; max-width: 780px; }
+table.audit td .mono, table.audit td.n { font-family: var(--mono); font-size: 12px; }
+table.audit tr.warn td { background: rgba(255, 123, 114, 0.05); }
+table.audit tr.warn td.claim { color: var(--text); }
+table.audit tr.warn td:first-child { box-shadow: inset 3px 0 0 var(--rose); }
+table.audit tr.caution td { background: rgba(227, 179, 65, 0.04); }
+table.audit tr.caution td:first-child { box-shadow: inset 3px 0 0 var(--amber); }
+table.audit .flip { font-family: var(--mono); font-size: 11px; color: var(--green); cursor: pointer; white-space: nowrap; }
+table.audit .flip:hover { text-decoration: underline; }
+.rollup { font-family: var(--mono); font-size: 11px; white-space: nowrap; }
+.rollup .u { color: var(--green); } .rollup .v { color: var(--rose); } .rollup .d { color: var(--blue); } .rollup .x { color: var(--muted); }
+
+/* controls index */
+.controls-head { display: flex; align-items: center; gap: 22px; font-family: var(--mono); font-size: 12px; margin-bottom: 16px; }
+.controls-head .t { color: var(--text); font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; font-size: 11px; }
+.controls-head .ws { color: var(--blue); }
+.controls-head .filter { margin-left: auto; color: var(--muted); border: 1px solid var(--border); border-radius: 6px; padding: 4px 14px; min-width: 320px; }
+.controls-head .filter b { color: var(--text); }
+.controls-head .filter i { color: var(--green); font-style: normal; animation: blink 1.1s step-end infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.ctrlgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 44px; }
+.ctrlrow { display: grid; grid-template-columns: 250px 1fr auto; gap: 16px; align-items: baseline; padding: 10px 8px; border-bottom: 1px solid var(--border-soft); }
+.ctrlrow:hover { background: var(--panel-2); }
+.ctrlrow .cname { font-family: var(--mono); font-size: 13px; color: var(--green); }
+.ctrlrow .cname mark { background: rgba(126,231,135,0.25); color: var(--green); border-radius: 2px; padding: 0 1px; }
+.ctrlrow .cdesc { font-family: var(--serif); font-size: 14.5px; color: var(--muted); }
+.ctrlrow .clinks { white-space: nowrap; }
+.docptr { font-family: var(--mono); font-size: 10px; color: var(--blue); border: 1px solid rgba(121,184,255,0.35); border-radius: 999px; padding: 1px 9px; margin-left: 4px; cursor: pointer; }
+.docptr:hover { background: rgba(121,184,255,0.1); }
+.graphlink { font-family: var(--mono); font-size: 10px; color: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 1px 9px; margin-left: 4px; cursor: pointer; }
+.graphlink:hover { color: var(--green); border-color: var(--green-line); }
+.controls-foot { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: 16px; line-height: 1.8; }
+.controls-foot b { color: var(--blue); }
+.readhint { font-family: var(--mono); font-size: 11.5px; color: var(--muted); padding: 6px 0; }
+.readhint b { color: var(--green); }
+
+/* callouts */
+.co {
+  position: absolute; z-index: 90; width: 30px; height: 30px; border-radius: 50%;
+  background: var(--rose); color: #0d1117; font-family: var(--mono); font-weight: 600;
+  font-size: 14px; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 0 5px rgba(255, 123, 114, 0.22), 0 4px 14px rgba(0,0,0,0.5);
+}
+.co.g { background: var(--green); box-shadow: 0 0 0 5px rgba(126, 231, 135, 0.2), 0 4px 14px rgba(0,0,0,0.5); }
+.callout-legend { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 40px; margin-top: 34px; }
+.callout-legend .cl { display: grid; grid-template-columns: 32px 1fr; gap: 14px; align-items: start; }
+.callout-legend .cl .n { width: 26px; height: 26px; border-radius: 50%; background: var(--rose); color: #0d1117; font-family: var(--mono); font-weight: 600; font-size: 13px; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
+.callout-legend .cl.g .n { background: var(--green); }
+.callout-legend .cl p { font-family: var(--serif); font-size: 15.5px; color: var(--muted); }
+.callout-legend .cl p b { color: var(--text); }
+
+/* ============ ACT 5 · FILMSTRIP ============ */
+.strip-outer { position: relative; }
+.strip {
+  display: flex; gap: 26px; overflow-x: auto; padding: 6px 6px 26px;
+  scroll-snap-type: x proximity;
+}
+.strip::-webkit-scrollbar { height: 10px; }
+.strip::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; }
+.strip::-webkit-scrollbar-track { background: var(--panel); border-radius: 5px; }
+.frame {
+  flex: 0 0 660px; scroll-snap-align: start; background: var(--panel);
+  border: 1px solid var(--border); border-radius: 12px; padding: 24px 26px 26px;
+  display: flex; flex-direction: column;
+}
+.frame.verdictf { border-color: var(--green-line); background: linear-gradient(180deg, rgba(126,231,135,0.06), var(--panel)); }
+.frame-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.frame-top .fno { font-family: var(--mono); font-size: 12px; color: var(--rose); font-weight: 600; }
+.frame-top .fcost { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.frame-top .fcost b { color: var(--green); }
+.frame h4 { font-size: 21px; font-weight: 600; margin-bottom: 12px; }
+.frame .fmock {
+  background: #0d1117; border: 1px solid var(--border-soft); border-radius: 8px;
+  padding: 18px 20px; margin-bottom: 16px; flex: 1;
+}
+.frame .fmock .fserif { font-family: var(--serif); font-size: 15.5px; line-height: 1.7; }
+.frame .fnote { font-family: var(--serif); font-size: 15px; color: var(--muted); line-height: 1.55; }
+.frame .fnote b { color: var(--text); }
+.mini-note { border-left: 3px solid var(--green); background: var(--panel); border-radius: 0 6px 6px 0; padding: 10px 12px; margin-top: 12px; font-family: var(--serif); font-size: 13.5px; font-style: italic; color: var(--text); }
+.mini-card { border: 1px solid var(--green-line); background: var(--panel); border-radius: 8px; padding: 12px 14px; margin-top: 12px; font-size: 13px; }
+.mini-card .mc-h { font-family: var(--mono); font-size: 10.5px; color: var(--muted); margin-bottom: 6px; }
+.mini-card .mc-q { font-family: var(--serif); font-style: italic; font-size: 13.5px; line-height: 1.5; }
+.mini-card.rose { border-color: var(--rose-line); }
+.mini-content { font-family: var(--mono); font-size: 11.5px; line-height: 1.8; color: var(--muted); margin-top: 12px; }
+.mini-content .hl { background: var(--green-dim); color: var(--text); box-shadow: inset 3px 0 0 var(--green); display: block; padding-left: 6px; }
+.striplbl { font-family: var(--mono); font-size: 11px; color: var(--muted); text-align: right; margin-top: 4px; }
+.striplbl b { color: var(--rose); }
+
+/* ============ ACT 6 · DECISIONS ============ */
+.decisions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 26px; }
+.dec { padding: 26px 28px; display: flex; flex-direction: column; }
+.dec h4 { font-size: 19px; font-weight: 600; margin-bottom: 10px; line-height: 1.3; }
+.dec h4 .cut { color: var(--rose); text-decoration: line-through; text-decoration-thickness: 2px; }
+.dec p { font-family: var(--serif); font-size: 15px; color: var(--muted); line-height: 1.6; flex: 1; }
+.dec p b { color: var(--text); }
+.dec p i.g { color: var(--green); font-style: normal; }
+.dec p i.r { color: var(--rose); font-style: normal; }
+.dec .evs { margin-top: 16px; border-top: 1px dashed var(--border-soft); padding-top: 12px; }
+
+/* ============ ACT 7 · BUILD PLAN ============ */
+.timeline { display: grid; grid-template-columns: 260px 260px 300px 420px 420px 560px; gap: 0; align-items: stretch; margin-bottom: 40px; overflow-x: auto; }
+.tphase { position: relative; padding: 24px 26px 24px 34px; border: 1px solid var(--border); border-left: none; background: var(--panel); }
+.tphase:first-child { border-left: 1px solid var(--border); border-radius: 12px 0 0 12px; }
+.tphase:last-child { border-radius: 0 12px 12px 0; }
+.tphase::after {
+  content: ""; position: absolute; right: -13px; top: 50%; transform: translateY(-50%) rotate(45deg);
+  width: 24px; height: 24px; background: inherit; border-top: 1px solid var(--border);
+  border-right: 1px solid var(--border); z-index: 2;
+}
+.tphase:last-child::after { display: none; }
+.tphase.spike { background: linear-gradient(180deg, rgba(255,123,114,0.07), var(--panel)); }
+.tphase.pre { background: linear-gradient(180deg, rgba(227,179,65,0.06), var(--panel)); }
+.tphase.core { background: linear-gradient(180deg, rgba(126,231,135,0.07), var(--panel)); }
+.tphase .tp-k { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.tphase.spike .tp-k { color: var(--rose); }
+.tphase.pre .tp-k { color: var(--amber); }
+.tphase.core .tp-k { color: var(--green); }
+.tphase .tp-n { font-family: var(--mono); font-size: 26px; font-weight: 600; margin: 6px 0 4px; }
+.tphase .tp-d { font-family: var(--serif); font-size: 14px; color: var(--muted); line-height: 1.5; }
+.plan-detail { display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 28px; }
+.plan-card { padding: 28px 32px; }
+.plan-card h4 { font-size: 20px; font-weight: 600; margin-bottom: 14px; }
+.plan-card h4 .mono { font-size: 13px; color: var(--muted); font-weight: 400; }
+.plan-card ul { list-style: none; }
+.plan-card li { font-family: var(--serif); font-size: 15.5px; color: var(--muted); padding: 7px 0 7px 24px; position: relative; border-bottom: 1px dashed var(--border-soft); }
+.plan-card li:last-child { border-bottom: none; }
+.plan-card li::before { content: "▸"; position: absolute; left: 2px; color: var(--green); font-family: var(--mono); font-size: 12px; top: 10px; }
+.plan-card li b { color: var(--text); }
+.plan-card li i.r { color: var(--rose); font-style: normal; }
+.plan-card .pc-tag { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 8px; display: block; }
+.plan-card .pc-tag.g { color: var(--green); } .plan-card .pc-tag.r { color: var(--rose); } .plan-card .pc-tag.a { color: var(--amber); }
+
+/* ============ ACT 8 · CRITICS ============ */
+.critpairs { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.critpair { display: grid; grid-template-rows: auto 1fr; }
+.crit, .resp { padding: 28px 32px; }
+.crit { border-color: var(--rose-line); background: linear-gradient(180deg, rgba(255,123,114,0.07), var(--panel)); border-radius: 12px 12px 0 0; border-bottom: none; }
+.resp { border-radius: 0 0 12px 12px; border-top: 1px dashed var(--border); }
+.crit .who { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--rose); margin-bottom: 10px; }
+.resp .who { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--green); margin-bottom: 10px; }
+.crit blockquote { font-family: var(--serif); font-size: 21px; font-style: italic; line-height: 1.55; color: var(--text); }
+.resp p { font-family: var(--serif); font-size: 16.5px; line-height: 1.65; color: var(--muted); margin-bottom: 12px; }
+.resp p b { color: var(--text); }
+.resp p i.g { color: var(--green); font-style: normal; }
+.resp p i.r { color: var(--rose); font-style: normal; }
+
+/* ============ ACT 9 · VERDICT ============ */
+.verdict { border-color: var(--green-line); background: linear-gradient(120deg, rgba(126,231,135,0.08), var(--panel) 45%, rgba(255,123,114,0.05)); padding: 46px 54px; display: grid; grid-template-columns: auto 1fr auto; gap: 60px; align-items: center; }
+.scores { display: flex; gap: 16px; }
+.score { text-align: center; }
+.score .sq {
+  width: 84px; height: 84px; border-radius: 12px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; border: 1px solid var(--border);
+  background: var(--panel-2); font-family: var(--mono);
+}
+.score .sq .l { font-size: 12px; color: var(--muted); letter-spacing: 0.08em; }
+.score .sq .v { font-size: 34px; font-weight: 600; color: var(--text); }
+.score .sq.top { border-color: var(--green-line); background: var(--green-dim); }
+.score .sq.top .v { color: var(--green); }
+.score .cap { font-family: var(--mono); font-size: 9.5px; color: var(--muted); margin-top: 8px; letter-spacing: 0.05em; }
+.verdict .vmid .big { font-family: var(--serif); font-size: 24px; line-height: 1.5; }
+.verdict .vmid .big b { color: var(--green); }
+.verdict .vmid .big i.r { color: var(--rose); font-style: italic; }
+.order { text-align: center; }
+.order .rank { font-family: var(--mono); font-size: 64px; font-weight: 600; color: var(--green); line-height: 1; }
+.order .lbl { font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-top: 8px; }
+.order .seq { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-top: 14px; }
+.order .seq b { color: var(--green); }
+footer.colophon { margin-top: 90px; font-family: var(--mono); font-size: 11px; color: var(--muted); border-top: 1px solid var(--border-soft); padding-top: 24px; display: flex; gap: 30px; }
+</style>
+</head>
+<body>
+
+<nav class="sitenav">
+  <span class="navtitle">drc dossier</span>
+  <a href="#hero"><span class="k">01</span>hero</a>
+  <a href="#moment"><span class="k">02</span>the moment</a>
+  <a href="#how"><span class="k">03</span>how it works</a>
+  <a href="#mockup"><span class="k">04</span>the mockup</a>
+  <a href="#filmstrip"><span class="k">05</span>verification ladder</a>
+  <a href="#decisions"><span class="k">06</span>design decisions</a>
+  <a href="#plan"><span class="k">07</span>build plan</a>
+  <a href="#critics"><span class="k">08</span>the critics</a>
+  <a href="#verdict"><span class="k">09</span>verdict</a>
+</nav>
+
+<div class="canvas">
+
+<!-- ================= ACT 1 · HERO ================= -->
+<header class="hero" id="hero">
+  <div>
+    <div class="kicker">use case 3 of 3 · report &amp; evidence studio · pitch</div>
+    <h1>
+      <span class="cmd">$ <b>drc dossier</b> agent-memory-layers</span>
+      The report that <em>proves itself</em> as you read it.
+    </h1>
+    <p class="oneliner">Every sentence is a <span class="r">promise</span> — make it <b>redeemable in one hover</b>. A local reading surface where research reports become verifiable: citation chips, margin evidence, tri-panel audit, and honest gaps rendered in amber.</p>
+  </div>
+  <div class="herostats">
+    <div class="stat panel">
+      <div class="n">80%</div>
+      <div class="d">of doubts should die on hover — the evidence card ends most verifications before a single click.</div>
+      <span class="src"><span class="ev">[<b>R5</b>: hover cards first]</span><span class="ev">[<b>NotebookLM</b>: 1 hover, 0 clicks]</span></span>
+    </div>
+    <div class="stat panel">
+      <div class="n">0<span style="font-size:22px;color:var(--muted)">-interaction</span></div>
+      <div class="d">margin verification — the viewport's citations project always-visible sidenotes; a saccade, not a click.</div>
+      <span class="src"><span class="ev">[<b>gwern</b>: clicks defeat the point]</span><span class="ev">[<b>R5 §9</b>: sidenotes by default]</span></span>
+    </div>
+    <div class="stat panel rosey">
+      <div class="n">263</div>
+      <div class="d">id citations in the first real deep-research report — data the current renderer throws on the floor as plain text.</div>
+      <span class="src"><span class="ev r">[<b>05</b>: measured on real reports]</span></span>
+    </div>
+  </div>
+  <div class="hero-footer">
+    <span>audience: one power developer · one very wide monitor</span><span class="dot">◆</span>
+    <span>reads local files only · zero cloud</span><span class="dot">◆</span>
+    <span>same <code>drc dash</code> chassis as mission &amp; atlas</span><span class="dot">◆</span>
+    <span>evidence base: R5 · CS3 · critique-response §dossier · design §6 revisions</span>
+  </div>
+</header>
+
+<!-- ================= ACT 2 · THE MOMENT ================= -->
+<section id="moment">
+  <div class="kicker">act 2 · the moment</div>
+  <h2 class="act">Three postures. <em class="r">One honest</em> data problem.</h2>
+  <p class="act-sub">A drc run ends with <code>report.md</code>, 34 <code>SourceRecord</code>s, distilled takeaways and <code>claims_of_use</code>, and every scraped page on disk — a pre-built version of what NotebookLM, Elicit, and gwern.net compute at runtime. The only missing piece is presentational. But the reader arrives in three different postures, and the citations underneath them are not what the first design assumed.</p>
+
+  <div class="postures">
+    <div class="posture panel">
+      <h3>Read</h3>
+      <div class="key">linear · after a run · default mode</div>
+      <p>Is this report right? What's the recommendation? Verification must be <b>approximately free</b> — margin notes carry the strongest evidence beside each claim, so the common case costs a glance.</p>
+      <span class="q">"Can I trust this sentence?" — claim → evidence in ≤2 interactions.</span>
+    </div>
+    <div class="posture audit panel">
+      <h3>Audit</h3>
+      <div class="key">skeptical · spot-checking · press <code>a</code></div>
+      <p>Which claims are thin? The claim table inverts the report: rows are claims, sorted <b>weakest first</b> — uncited sentences and vendor-only rankings float to the top with warning tint.</p>
+      <span class="q">"41 claims · 31 grounded · 7 thin · 3 uncited" — stated, not buried.</span>
+    </div>
+    <div class="posture ref panel">
+      <h3>Reference</h3>
+      <div class="key">months later · tool-graph workspaces · Controls tab</div>
+      <p>"What were pydantic's serialization controls again?" The synthesis becomes a <b>living capability index</b> — every knob filterable, every entry keeping its doc pointer. This is the surface's retention claim.</p>
+      <span class="q">Promoted from v1.5 to v1 by the critique — it earns the keep.</span>
+    </div>
+  </div>
+
+  <div class="reality">
+    <div class="cell panel">
+      <h4>The measured citation reality (4 real reports)</h4>
+      <div class="cite-bar">
+        <div class="lbl">deep-research report<small>agent-memory-layers · report.md</small></div>
+        <div class="bar" style="width: 96%"></div>
+        <div class="num">263 ids</div>
+      </div>
+      <div class="cite-bar thin">
+        <div class="lbl">tool-graph reports<small>pydantic-v2 &amp; friends · report.md</small></div>
+        <div class="bar"></div>
+        <div class="num">~5 ids</div>
+      </div>
+      <div class="cite-bar thin">
+        <div class="lbl">what tool reports cite instead<small>[synthesis/&lt;facet&gt;.md] pointers</small></div>
+        <div class="bar" style="background: var(--blue); box-shadow:none;"></div>
+        <div class="num" style="color: var(--blue)">pointers</div>
+      </div>
+      <p class="verdictline">The first design assumed one citation grammar. <b>Measurement said no</b> — and the critique called it threatening. So the design now handles both, natively.</p>
+    </div>
+    <div class="cell panel">
+      <h4>How the design absorbs it</h4>
+      <ul class="fixlist">
+        <li><span class="fx">01</span><span><b>Synthesis-pointer citations are first-class.</b> A <code>[synthesis/configuration-and-controls.md]</code> pointer becomes a chip that opens the matching Controls-index section — not a dead string.</span></li>
+        <li><span class="fx">02</span><span><b>The tool-graph skill is amended now</b> with the one-line id-citation contract, so future tool reports carry ids too.</span></li>
+        <li><span class="fx">03</span><span><b>A 1-hour citation-coverage script runs before any build</b> — id-regex + normalized-URL + synthesis-pointer extraction over the four existing report.md files gates the scope split.</span></li>
+      </ul>
+    </div>
+    <div class="cell panel honesty">
+      <span class="tag">why this honesty is the pitch</span>
+      <p>A verification surface that fudged its own evidence base would be a joke at its own expense. This design was <b>critiqued, measured, and re-budgeted</b>: the VENDOR heuristic that couldn't be computed was <span class="r">cut and replaced with a ladder</span>; Admiralty grades that added complexity without signal were <span class="r">cut entirely</span>; tool mode's hidden cost was re-priced from +2 to <b>+4 days as a second evidence model</b>. The dossier practices the epistemics it renders.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ACT 3 · HOW IT WORKS ================= -->
+<section id="how">
+  <div class="kicker">act 3 · how it works</div>
+  <h2 class="act">Two ladders and a <em class="r">tamed</em> gap marker.</h2>
+  <p class="act-sub">Everything in the dossier is pay-as-you-go depth. The detail ladder controls how much evidence you see; the valence ladder controls how much the UI dares to claim about that evidence; gap markers fire only where absence of citation actually means something.</p>
+
+  <div class="ladders">
+    <div class="ladder panel">
+      <h3>The detail ladder</h3>
+      <p class="sub">gwern's semantic zoom, rebuilt on drc's real data model — each rung optional, report scroll position sacred at every rung.</p>
+      <div class="rung">
+        <div class="cost">0 interactions<br>a saccade</div>
+        <div class="what"><b>Margin sidenote</b><p>The viewport's citations project always-visible notes: strongest takeaway + valence badge. One note per paragraph; overflow collapses into the chip count.</p></div>
+      </div>
+      <div class="rung">
+        <div class="cost">1 hover<br>0 clicks</div>
+        <div class="what"><b>Evidence card</b><p>Source title, domain, category, relevance, the supporting takeaway or <code>claims_of_use</code> quote verbatim, valence badge. Target: 80% of doubts die here.</p></div>
+      </div>
+      <div class="rung">
+        <div class="cost">1 click</div>
+        <div class="what"><b>Tri-panel</b><p>Center report holds position; right-center shows the full <code>DistilledRecord</code>; far right opens the content file. <code>Esc</code> collapses back. Panels, never modals.</p></div>
+      </div>
+      <div class="rung">
+        <div class="cost">same click</div>
+        <div class="what"><b>Highlighted passage</b><p>Content file auto-scrolled to the matched span — exact with quote-spans, <code>≈</code>-labeled with fuzzy. Below the confidence threshold: no highlight rather than a wrong one.</p></div>
+      </div>
+      <div class="note"><b>cost curve:</b> hover &lt; click &lt; read-around — each step optional <span class="ev">[<b>CS3</b>: NotebookLM anatomy]</span> <span class="ev">[<b>R5 §12</b>: detail ladder]</span></div>
+    </div>
+
+    <div class="ladder panel">
+      <h3>The valence ladder</h3>
+      <p class="sub">Replaces the cut heuristic. Rule zero: <b>no badge over a guessed badge</b> — derived signals are inspectable, never oracular.</p>
+      <div class="rung">
+        <div class="cost">rung 1<br>trust the text</div>
+        <div class="what"><b>The report's own labels</b><p>The agent already writes <code>[vendor]</code> / <code>[practitioner]</code> labels in prose. Parse them first — they're the author's classification, not the UI's guess.</p></div>
+      </div>
+      <div class="rung">
+        <div class="cost">rung 2<br>compute only</div>
+        <div class="what"><b>Computable proxies</b><p>Source <code>category</code>; docs-domain matching. Non-empty <code>claims_of_use</code> aligned to the claim → <span class="badge use">USE</span>. Every badge tooltip shows its derivation inputs.</p></div>
+      </div>
+      <div class="rung">
+        <div class="cost m">rung 3<br>abstain</div>
+        <div class="what"><b>Unlabeled → no badge</b><p>Subject-entity inference is dropped. A missing badge is honest; a wrong badge poisons the whole surface's credibility.</p></div>
+      </div>
+      <div class="note"><b>docs are special:</b> docs sources get a <span class="badge docs">DOCS</span> chip and are excluded from valence — never SECONDHAND-by-default <span class="ev">[<b>05</b>: valence ladder]</span> <span class="ev">[<b>scite</b>: inspectable classification]</span></div>
+    </div>
+
+    <div class="ladder panel">
+      <h3>Gap markers, tamed</h3>
+      <p class="sub">Wikipedia's <code>[citation needed]</code> instinct, scoped so it never cries wolf.</p>
+      <div class="rung">
+        <div class="cost r">v1 fires on</div>
+        <div class="what"><b>Ranking sentences, zero citations</b><p>The one place an unsourced sentence is load-bearing: a claim in a ranking section with no chip gets the dashed amber marker.</p></div>
+      </div>
+      <div class="rung">
+        <div class="cost m">v1 does not</div>
+        <div class="what"><b>Flag everything else</b><p>Connective prose, hedges, and summaries stay unmarked. The claim-extraction vocabulary expands only after observing real reports.</p></div>
+      </div>
+      <div class="rung">
+        <div class="cost m">always</div>
+        <div class="what"><b>Cross-link the report's own gaps</b><p>Computed markers sit beside the report's "open questions / thin coverage" section — the UI amplifies the pipeline's honesty requirement, it doesn't replace it.</p></div>
+      </div>
+      <div class="note"><b class="r">degradation stays honest:</b> the audit header carries an "indexed sentences" stat (38/41) so parse drift is visible <span class="ev">[<b>05</b>: cries-wolf fix]</span> <span class="ev">[<b>Wikipedia</b>: render the gap inline]</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ACT 4 · THE MOCKUP ================= -->
+<section id="mockup">
+  <div class="kicker">act 4 · the centerpiece</div>
+  <h2 class="act">The dossier, <em>at full width</em>.</h2>
+  <p class="act-sub">Workspace <code>agent-memory-layers</code>, Read mode. Source rail · 70ch serif report · always-visible margin notes · evidence panels. Hover the solid green chip <span class="chip use" style="cursor:default">a3f92c</span> in the report below for the real evidence card. Tabs switch the bottom strip: the weakest-first audit table and the Controls capability index are both live.</p>
+
+  <div class="mockwrap">
+    <!-- numbered callouts -->
+    <div class="co" style="top: 120px; left: -14px;">1</div>
+    <div class="co g" style="top: 300px; left: 900px;">2</div>
+    <div class="co" style="top: 585px; left: 1000px;">3</div>
+    <div class="co g" style="top: 150px; left: 1330px;">4</div>
+    <div class="co g" style="top: 120px; right: 780px;">5</div>
+    <div class="co" style="top: 700px; right: 300px;">6</div>
+    <div class="co g" style="top: -14px; left: 560px;">7</div>
+    <div class="co" style="bottom: 470px; left: -14px;">8</div>
+    <div class="co" style="bottom: 470px; right: -14px;">9</div>
+
+    <div class="mock">
+      <div class="mock-titlebar">
+        <div class="traffic"><i></i><i></i><i></i></div>
+        <span class="loc">drc dash · <b>dossier: agent-memory-layers</b> · /w/agent-memory-layers/dossier</span>
+        <div class="modetabs" id="modetabs">
+          <button class="modetab active" data-view="read">Read</button>
+          <button class="modetab" data-view="audit">Audit <span style="opacity:.6">a</span></button>
+          <button class="modetab" data-view="controls">Controls</button>
+        </div>
+        <span class="claimstat">claims: 41 <b class="g">✓31</b> <b class="a">~7</b> <b class="r">⚠3</b> · indexed 38/41</span>
+      </div>
+
+      <div class="mockgrid">
+        <!-- ①  SOURCE RAIL -->
+        <div class="mockcol">
+          <h5>Sources · 34 · by relevance ▾</h5>
+          <div class="rail-filters">
+            <span class="rail-filter on">USE-only</span>
+            <span class="rail-filter">category ▾</span>
+            <span class="rail-filter">rel ▾</span>
+            <span class="rail-filter">cited-only</span>
+          </div>
+          <div class="srcrow hot"><span class="vd use">●</span><span class="sid">a3f92c</span><span class="dom">engineering.acme.dev</span><span class="rel">0.91</span></div>
+          <div class="srcrow"><span class="vd ven">○</span><span class="sid">b7d310</span><span class="dom">docs.getzep.com</span><span class="rel">0.88</span></div>
+          <div class="srcrow"><span class="vd doc">▨</span><span class="sid">c41e88</span><span class="dom">docs.letta.com</span><span class="rel">0.85</span></div>
+          <div class="srcrow"><span class="vd use">●</span><span class="sid">d92b17</span><span class="dom">news.ycombinator.com</span><span class="rel">0.79</span></div>
+          <div class="srcrow"><span class="vd ven">○</span><span class="sid">e07d43</span><span class="dom">mem0.ai</span><span class="rel">0.77</span></div>
+          <div class="srcrow"><span class="vd non">·</span><span class="sid">f66a02</span><span class="dom">arxiv.org</span><span class="rel">0.74</span></div>
+          <div class="srcrow"><span class="vd non">·</span><span class="sid">0b9e51</span><span class="dom">blog.langchain.dev</span><span class="rel">0.72</span></div>
+          <div class="srcrow"><span class="vd use">●</span><span class="sid">7c2fd9</span><span class="dom">medium.com/@infra-notes</span><span class="rel">0.70</span></div>
+          <div class="srcrow"><span class="vd doc">▨</span><span class="sid">91ae37</span><span class="dom">docs.mem0.ai</span><span class="rel">0.68</span></div>
+          <div class="srcrow"><span class="vd non">·</span><span class="sid">4d80c6</span><span class="dom">reddit.com/r/LocalLLaMA</span><span class="rel">0.66</span></div>
+          <div class="srcrow"><span class="vd ven">○</span><span class="sid">ab55e0</span><span class="dom">getzep.com/blog</span><span class="rel">0.64</span></div>
+          <div class="srcrow"><span class="vd non">·</span><span class="sid">2f7b98</span><span class="dom">dev.to</span><span class="rel">0.61</span></div>
+          <div class="railmore">… 22 more · click a source to highlight every chip citing it (highlight-if-visible)</div>
+          <div class="raillegend">
+            ● USE-bearing (claims_of_use non-empty)<br>
+            ○ vendor-labeled &nbsp;·&nbsp; ▨ docs (no DistilledRecord)<br>
+            · unlabeled — no badge, never a guessed one
+          </div>
+        </div>
+
+        <!-- ② ③  REPORT CENTER -->
+        <div class="mockcol reportcol">
+          <h5>Report · position sacred · ~70ch</h5>
+          <div class="report-h">Best agent memory layer for long-horizon coding agents</div>
+          <div class="report-meta">report.md · run 2026-07-05 · harvest → scrape → distill → synthesize → report · 34 sources</div>
+          <div class="report-prose">
+            <h6>Ranked: memory layers for multi-session agents</h6>
+            <p><span class="rank">1. <span class="nm">Zep</span></span> — Zep's temporal knowledge graph gives it the strongest production track record for multi-session recall<span class="chip use" tabindex="0">a3f92c
+                <span class="hovercard">
+                  <span class="hc-top"><span class="hc-title">Zep migration postmortem — Acme Engineering</span><span class="badge use">USE</span></span>
+                  <span class="hc-meta">engineering.acme.dev · practitioner-writeup · relevance 0.91 · sourced via [practitioner] label + claims_of_use</span>
+                  <span class="hc-quote">"We moved our agent's session memory to Zep in March and haven't looked back — recall regressions dropped to near zero after the cutover."</span>
+                  <span class="hc-foot"><b>click</b> → DistilledRecord + content file, passage highlighted · <b>esc</b> collapses</span>
+                </span></span><span class="chip vendor">b7d310</span>. Its edge-invalidation model supersedes facts that change over time instead of duplicating them, and the one third-party production migration we found reports recall quality improving across multi-week sessions <span class="chip use" style="cursor:default">a3f92c</span>. Vendor benchmarks claim sub-100ms retrieval at the 95th percentile <span class="chip vendor">b7d310</span>.</p>
+            <p><span class="rank">2. <span class="nm">Letta</span></span> — Letta inherits MemGPT's self-editing memory design and adds an agent-file format that makes state portable across runtimes <span class="chip docs">c41e88</span>. <span class="gap-sent">Letta's agent-file portability makes it the safest long-horizon bet.</span> <span class="chip gap">⚠ uncited ranking claim</span> Practitioner threads describe the core-memory / archival split as easy to reason about but slow to tune in production <span class="chip use" style="cursor:default">d92b17</span>.</p>
+            <p><span class="rank">3. <span class="nm">Mem0</span></span> — Mem0 optimizes for drop-in simplicity; its extraction-then-update pipeline scores well on the vendor's own benchmark suite <span class="chip vendor">e07d43</span>, but the third-party production reports we found are thin, and its docs stop short of multi-session guarantees <span class="chip docs">91ae37</span>.</p>
+            <p style="color: var(--muted); font-size: 16.5px;"><em>Open questions / thin coverage:</em> no independent latency benchmark exists for any of the three; Letta's ranking rests on design reasoning rather than field reports — see gap markers and the audit table.</p>
+            <div class="footline">entity mentions link to atlas searches · source cards link to the mission grid's row · three surfaces, one app</div>
+          </div>
+        </div>
+
+        <!-- ④  MARGIN NOTES -->
+        <div class="mockcol margincol">
+          <h5>Margin notes · visible by default · 1 per ¶</h5>
+          <div class="sidenote">
+            <div class="sn-id"><span>a3f92c · strongest evidence for ¶1</span><span class="badge use">USE</span></div>
+            <div class="sn-q">"Team reports replacing bespoke session-summary store with Zep in production; recall quality improved across multi-week sessions."</div>
+            <div class="sn-src">engineering.acme.dev · practitioner-writeup · rel 0.91</div>
+          </div>
+          <div class="sidenote vendor">
+            <div class="sn-id"><span>b7d310 · labeled [vendor] in report</span><span class="badge vendor">VENDOR</span></div>
+            <div class="sn-q">"Sub-100ms p95 retrieval at scale" — self-reported benchmark on the product docs page.</div>
+            <div class="sn-src">docs.getzep.com · vendor docs · rel 0.88</div>
+          </div>
+          <div class="sidenote gap">
+            <div class="sn-id"><span>¶2 · ranking sentence, zero citations</span><span class="badge warn">⚠ GAP</span></div>
+            <div class="sn-q">"…safest long-horizon bet" is load-bearing and unsourced. Flagged here and floated to the top of the audit table.</div>
+            <div class="sn-src">gap markers fire only on ranking sentences with no chips</div>
+          </div>
+          <div class="sidenote docs">
+            <div class="sn-id"><span>c41e88 · docs source — no DistilledRecord</span><span class="badge docs">DOCS</span></div>
+            <div class="sn-q">First heading: "Agent File (.af): a portable file format for stateful agents" · found_via: llms.txt</div>
+            <div class="sn-src">docs.letta.com · excluded from valence by design</div>
+          </div>
+          <div class="marginrule">
+            <b>gwern rules:</b> visible by default · JS overlap reflow · never click-to-expand<br>
+            density cap: 1 note per paragraph; overflow collapses into the chip count
+          </div>
+        </div>
+
+        <!-- ⑤ ⑥  EVIDENCE PANELS -->
+        <div class="mockcol evcol">
+          <h5>Evidence · tri-panel (click) · idle = viewport's strongest</h5>
+          <div class="evpanel hot">
+            <div class="ep-h"><span class="fn">DistilledRecord · a3f92c1b04de</span><span class="tag">distilled/a3f92c1b04de.json</span></div>
+            <div class="dr-meta">
+              url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b>engineering.acme.dev/zep-migration-postmortem</b><br>
+              category&nbsp; <b>practitioner-writeup</b> &nbsp;·&nbsp; relevance <b>0.91</b> &nbsp;·&nbsp; <span class="badge use">USE</span>
+            </div>
+            <div class="dr-sec">takeaways <b>(5)</b></div>
+            <ul class="dr-list">
+              <li>Replaced a bespoke session-summary store with Zep in production</li>
+              <li class="lit">Recall quality improved across multi-week sessions</li>
+              <li>Only two alternatives were evaluated (Zep, Mem0)</li>
+              <li>Temporal edge invalidation reduced stale-fact bugs</li>
+              <li>Migration took one sprint including backfill</li>
+            </ul>
+            <div class="dr-sec">claims_of_use <b>(2)</b></div>
+            <ul class="dr-list uses">
+              <li>"we moved our agent's session memory to Zep in March and haven't looked back"</li>
+              <li>"recall regressions dropped to near zero after the cutover"</li>
+            </ul>
+            <div class="dr-ents"><span class="ent">Zep</span><span class="ent">session memory</span><span class="ent">temporal KG</span><span class="ent">Mem0</span><span class="ent">multi-session recall</span></div>
+          </div>
+          <div class="evpanel">
+            <div class="ep-h"><span class="fn">content/a3f92c1b04de.md</span><span class="fuzz">≈ fuzzy match 0.87</span></div>
+            <div class="contentview">
+              <span class="ln">139</span>store that quietly rotted between sessions. Summaries<br>
+              <span class="ln">140</span>drifted, and nobody trusted the recall.<br>
+              <span class="ln">141</span><br>
+              <span class="hl"><span class="ln">142</span>We moved our agent's session memory to Zep in March</span>
+              <span class="hl"><span class="ln">143</span>and haven't looked back — recall regressions dropped</span>
+              <span class="hl"><span class="ln">144</span>to near zero after the cutover.</span>
+              <span class="ln">145</span>The caveat: we only evaluated two alternatives, and<br>
+              <span class="ln">146</span>our workload is chat-heavy. Your mileage on tool-use<br>
+              <span class="ln">147</span>traces may differ.<br>
+            </div>
+            <div class="idle-note" style="margin-top: 12px;">below confidence threshold → <b>no highlight</b>, doc opens un-scrolled · exact tier unlocks with the distill <b>quote-span</b> change</div>
+          </div>
+          <div class="evpanel" style="border-style: dashed;">
+            <div class="ep-h"><span class="fn" style="color: var(--muted)">idle state · Read mode</span></div>
+            <div class="idle-note">no chip active → this panel shows the <b>strongest evidence for the current viewport</b> (never dead canvas). Esc = dismiss topmost pane, everywhere, always.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⑧ ⑨  BOTTOM STRIP: audit table / controls index -->
+      <div class="mockbottom">
+        <div class="bottomview" data-view="read">
+          <div class="readhint">read mode · bottom strip collapsed — press <b>a</b> for the audit table, or open <b>Controls</b> on a tool-graph workspace ▸ (click the tabs above)</div>
+        </div>
+
+        <div class="bottomview active" data-view="audit">
+          <div class="audit-head">
+            <span class="t">Audit table</span>
+            <span class="cov">41 claims · <b class="g">31 fully grounded</b> · <b class="a">7 thin</b> · <b class="r">3 uncited</b> · indexed sentences 38/41</span>
+            <span class="sort">sort: weakest first ▾</span>
+          </div>
+          <table class="audit">
+            <thead>
+              <tr><th style="width: 46%">claim</th><th>valence roll-up</th><th>n</th><th>sources</th><th></th></tr>
+            </thead>
+            <tbody>
+              <tr class="warn">
+                <td class="claim">"Letta's agent-file portability makes it the safest long-horizon bet."</td>
+                <td><span class="rollup"><span class="x">— uncited</span></span> <span class="badge warn">⚠ ranking, 0 citations</span></td>
+                <td class="n">0</td>
+                <td class="mono">—</td>
+                <td><span class="flip">jump to sentence ▸</span></td>
+              </tr>
+              <tr class="warn">
+                <td class="claim">"Vendor benchmarks claim sub-100ms retrieval at the 95th percentile."</td>
+                <td><span class="rollup"><span class="v">VENDOR:1</span></span> <span class="badge warn">⚠ vendor-only</span></td>
+                <td class="n">1</td>
+                <td class="mono">b7d310</td>
+                <td><span class="flip">flip quotes ▸</span></td>
+              </tr>
+              <tr class="caution">
+                <td class="claim">"…scores well on the vendor's own benchmark suite, but third-party production reports are thin."</td>
+                <td><span class="rollup"><span class="v">VENDOR:1</span> <span class="d">DOCS:1</span></span></td>
+                <td class="n">2</td>
+                <td class="mono">e07d43 91ae37</td>
+                <td><span class="flip">flip quotes ▸</span></td>
+              </tr>
+              <tr>
+                <td class="claim">"Zep's temporal knowledge graph gives it the strongest production track record for multi-session recall."</td>
+                <td><span class="rollup"><span class="u">USE:1</span> <span class="v">VENDOR:1</span></span></td>
+                <td class="n">2</td>
+                <td class="mono">a3f92c b7d310</td>
+                <td><span class="flip">flip quotes ▸</span></td>
+              </tr>
+              <tr>
+                <td class="claim">"Practitioner threads describe the core-memory / archival split as easy to reason about but slow to tune."</td>
+                <td><span class="rollup"><span class="u">USE:1</span></span></td>
+                <td class="n">1</td>
+                <td class="mono">d92b17</td>
+                <td><span class="flip">flip quotes ▸</span></td>
+              </tr>
+              <tr>
+                <td class="claim">"Edge invalidation supersedes changing facts instead of duplicating them."</td>
+                <td><span class="rollup"><span class="u">USE:1</span> <span class="d">DOCS:1</span></span></td>
+                <td class="n">2</td>
+                <td class="mono">a3f92c c41e88</td>
+                <td><span class="flip">flip quotes ▸</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="bottomview" data-view="controls">
+          <div class="controls-head">
+            <span class="t">Controls · capability index</span>
+            <span class="ws">tool workspace: pydantic-v2 · parsed from synthesis/configuration-and-controls.md</span>
+            <span class="filter">filter: <b>valid</b><i>▎</i></span>
+          </div>
+          <div class="ctrlgrid">
+            <div>
+              <div class="ctrlrow">
+                <span class="cname">field_<mark>valid</mark>ator</span>
+                <span class="cdesc">per-field validation hook; mode="before" | "after" | "wrap"</span>
+                <span class="clinks"><span class="docptr">docs a41f</span><span class="graphlink">graph ↗</span></span>
+              </div>
+              <div class="ctrlrow">
+                <span class="cname">model_<mark>valid</mark>ator</span>
+                <span class="cdesc">whole-model hook; mode="before" for raw-key parsing</span>
+                <span class="clinks"><span class="docptr">docs a41f</span><span class="graphlink">graph ↗</span></span>
+              </div>
+              <div class="ctrlrow">
+                <span class="cname">model_config · ConfigDict</span>
+                <span class="cdesc">extra="forbid", frozen, populate_by_name, str_strip_whitespace</span>
+                <span class="clinks"><span class="docptr">docs 9c2e</span><span class="graphlink">graph ↗</span></span>
+              </div>
+              <div class="ctrlrow">
+                <span class="cname">Field(alias=…)</span>
+                <span class="cdesc">raw-key → field mapping without writing a validator</span>
+                <span class="clinks"><span class="docptr">docs 9c2e</span><span class="graphlink">graph ↗</span></span>
+              </div>
+            </div>
+            <div>
+              <div class="ctrlrow">
+                <span class="cname">RootModel</span>
+                <span class="cdesc"><mark>valid</mark>ate list/dict shapes without changing them</span>
+                <span class="clinks"><span class="docptr">docs 77b0</span><span class="graphlink">graph ↗</span></span>
+              </div>
+              <div class="ctrlrow">
+                <span class="cname">@computed_field</span>
+                <span class="cdesc">derived values included in serialization output</span>
+                <span class="clinks"><span class="docptr">docs 77b0</span><span class="graphlink">graph ↗</span></span>
+              </div>
+              <div class="ctrlrow">
+                <span class="cname">model_<mark>valid</mark>ate_json</span>
+                <span class="cdesc">strict JSON parsing straight into the model, bytes ok</span>
+                <span class="clinks"><span class="docptr">docs 5d18</span><span class="graphlink">graph ↗</span></span>
+              </div>
+              <div class="ctrlrow">
+                <span class="cname">TypeAdapter</span>
+                <span class="cdesc"><mark>valid</mark>ate arbitrary types without declaring a BaseModel</span>
+                <span class="clinks"><span class="docptr">docs 5d18</span><span class="graphlink">graph ↗</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="controls-foot">columns: control · one-liner · doc pointer (source id → docs URL) · open-in-graph (drc atlas entity search) &nbsp;·&nbsp; <b>[synthesis/&lt;facet&gt;.md]</b> pointer citations in tool reports resolve to sections of this index — first-class chips, not dead strings · unparsed sections render as plain markdown with a note</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout-legend">
+      <div class="cl"><span class="n">1</span><p><b>Source rail</b> — 34 <code>SourceRecord</code>s by relevance, filterable (USE-only, category); clicking one highlights every chip citing it, Wikipedia's highlight-if-visible trick.</p></div>
+      <div class="cl g"><span class="n">2</span><p><b>Citation chips</b> — numbered with the rail (Perplexity pattern). Solid green <span class="chip use" style="cursor:default">a3f92c</span> = USE-backed; hollow rose = vendor-labeled; dotted blue = docs. Hover the live one above.</p></div>
+      <div class="cl"><span class="n">3</span><p><b>Gap marker</b> — dashed amber on the one place it means something: a ranking sentence with zero citations. It also floats to the top of the audit table.</p></div>
+      <div class="cl g"><span class="n">4</span><p><b>Margin notes</b> — gwern rules: visible by default, JS overlap reflow, never click-to-expand. Strongest takeaway + valence badge per paragraph; 0-interaction verification.</p></div>
+      <div class="cl g"><span class="n">5</span><p><b>DistilledRecord panel</b> — the full distilled evidence on click: takeaways (matched one lit), <code>claims_of_use</code> verbatim, entities linking onward to atlas.</p></div>
+      <div class="cl"><span class="n">6</span><p><b>Content file + confidence</b> — the scraped source auto-scrolled to the matched passage, honestly labeled <code>≈ fuzzy match 0.87</code>. Below threshold: no highlight rather than a wrong one.</p></div>
+      <div class="cl g"><span class="n">7</span><p><b>Mode tabs</b> — Read / Audit (<code>a</code>) / Controls. Controls appears for tool-graph workspaces and is the surface's long-lived retention claim.</p></div>
+      <div class="cl"><span class="n">8</span><p><b>Audit table</b> — claims as rows, sorted weakest-first; valence roll-ups (<span class="rollup"><span class="u">USE:1</span> <span class="v">VENDOR:1</span></span>), warning tint on uncited and vendor-only rankings; Elicit cell-flip through quotes.</p></div>
+      <div class="cl"><span class="n">9</span><p><b>Controls capability index</b> — every pydantic knob parsed from synthesis, type-to-filter, doc-pointer chips and open-in-graph links. Click the Controls tab to see it.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ACT 5 · FILMSTRIP ================= -->
+<section id="filmstrip">
+  <div class="kicker">act 5 · the verification ladder, walked</div>
+  <h2 class="act">Doubting a ranking claim, <em>frame by frame</em>.</h2>
+  <p class="act-sub">The CS3 walkthrough, verbatim scenario: the report ranks Zep above Letta and one sentence stops the reader. Scroll right — the running counter tracks every interaction spent. <span class="ev">[<b>CS3</b>: 1 hover 1 click]</span> <span class="ev">[<b>R5</b>: passage anchors]</span></p>
+
+  <div class="strip-outer">
+    <div class="strip">
+      <div class="frame">
+        <div class="frame-top"><span class="fno">frame 01</span><span class="fcost">interactions: <b>0</b></span></div>
+        <h4>The sentence that stops you</h4>
+        <div class="fmock">
+          <p class="fserif">"Zep's temporal knowledge graph gives it the <b>strongest production track record</b> for multi-session recall <span class="chip use" style="cursor:default">a3f92c</span><span class="chip vendor" style="cursor:default">b7d310</span>."</p>
+        </div>
+        <p class="fnote">The chips already disagree: <b>a3f92c wears solid green</b> (claims_of_use-backed), <b>b7d310 is hollow</b> (vendor-labeled). That asymmetry is itself information — only one citation rests on evidence of real-world use.</p>
+      </div>
+
+      <div class="frame">
+        <div class="frame-top"><span class="fno">frame 02</span><span class="fcost">interactions: <b>0</b> — a saccade</span></div>
+        <h4>The margin note is already there</h4>
+        <div class="fmock">
+          <div class="mini-note">"Team reports replacing bespoke session-summary store with Zep in production; recall quality improved across multi-week sessions." <span class="badge use" style="margin-left:6px">USE</span></div>
+        </div>
+        <p class="fnote">Because the claim is on-screen, its sidenote is already visible gwern-style. <b>Zero interactions spent</b>; the doubt narrows — is this a customer report or vendor content?</p>
+      </div>
+
+      <div class="frame">
+        <div class="frame-top"><span class="fno">frame 03</span><span class="fcost">interactions: <b>1 hover</b> · 0 clicks</span></div>
+        <h4>Hover the chip → evidence card</h4>
+        <div class="fmock">
+          <div class="mini-card">
+            <div class="mc-h">engineering.acme.dev · practitioner-writeup · relevance 0.91 · <span class="badge use">USE</span></div>
+            <div class="mc-q">"We moved our agent's session memory to Zep in March and haven't looked back."</div>
+          </div>
+        </div>
+        <p class="fnote">The card shows an <b>engineering-blog URL</b> and the <code>claims_of_use</code> entry verbatim. Not vendor content. Still ambiguous — "improved recall quality" could be paraphrase-inflated.</p>
+      </div>
+
+      <div class="frame">
+        <div class="frame-top"><span class="fno">frame 04</span><span class="fcost">interactions: 1 hover · <b>1 click</b></span></div>
+        <h4>Click → tri-panel engages</h4>
+        <div class="fmock">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-family:var(--mono);font-size:10.5px;color:var(--muted);text-align:center;">
+            <div style="border:1px solid var(--border-soft);border-radius:6px;padding:22px 8px;">report<br><span style="color:var(--green)">position held</span></div>
+            <div style="border:1px solid var(--green-line);border-radius:6px;padding:22px 8px;background:var(--green-dim);color:var(--text)">DistilledRecord<br>a3f92c1b04de</div>
+            <div style="border:1px solid var(--green-line);border-radius:6px;padding:22px 8px;">content/…md<br><span style="color:var(--amber)">≈ 0.87</span></div>
+          </div>
+        </div>
+        <p class="fnote">Center holds position; the full record and the content file open as <b>panels, never modals</b>. <code>Esc</code> collapses back — "return to reading" costs zero.</p>
+      </div>
+
+      <div class="frame">
+        <div class="frame-top"><span class="fno">frame 05</span><span class="fcost">interactions: same click</span></div>
+        <h4>The passage, in its native paragraph</h4>
+        <div class="fmock">
+          <div class="mini-content">
+            <span>drifted, and nobody trusted the recall.</span>
+            <span class="hl">We moved our agent's session memory to Zep in March and haven't looked back…</span>
+            <span style="color:var(--rose)">The caveat: we only evaluated two alternatives.</span>
+          </div>
+        </div>
+        <p class="fnote">Reading around the highlight catches what quote-mining hides: it's a genuine third-party postmortem — <b>with the caveat that they tested only two alternatives</b>.</p>
+      </div>
+
+      <div class="frame">
+        <div class="frame-top"><span class="fno">frame 06</span><span class="fcost">interactions: <b>2 hovers</b> · 1 click</span></div>
+        <h4>One hover on the hollow chip</h4>
+        <div class="fmock">
+          <div class="mini-card rose">
+            <div class="mc-h">docs.getzep.com · vendor docs · <span class="badge vendor">VENDOR</span> (report's own [vendor] label)</div>
+            <div class="mc-q">Product docs page — sub-100ms p95 claim, self-reported benchmark. Marketing-adjacent, correctly badged.</div>
+          </div>
+        </div>
+        <p class="fnote"><b>b7d310 resolves to a Zep docs page.</b> The asymmetry seen in frame 01 is confirmed: the ranking's second leg is vendor self-description.</p>
+      </div>
+
+      <div class="frame verdictf">
+        <div class="frame-top"><span class="fno" style="color:var(--green)">frame 07</span><span class="fcost">total: <b>2 hovers · 1 click</b> · 1 free margin read</span></div>
+        <h4>Verdict: real, but overstated</h4>
+        <div class="fmock">
+          <p class="fserif" style="color:var(--muted)">annotation → <em style="color:var(--text)">"soften to 'the only third-party production validation found.'"</em></p>
+          <div style="margin-top:14px;font-family:var(--mono);font-size:11px;color:var(--muted);line-height:2;">
+            "strongest track record" rests on <span style="color:var(--green)">1 practitioner report</span> + <span style="color:var(--rose)">1 vendor page</span><br>
+            pin a3f92c · pop entity "multi-session recall" → 2 more sources, both hollow<br>
+            place in the report: <span style="color:var(--green)">never lost</span>
+          </div>
+        </div>
+        <p class="fnote">The doubt is resolved, logged, and priced: <b>under three interactions</b> for a full claim-to-passage audit that would otherwise be "open page, Ctrl-F, hope."</p>
+      </div>
+    </div>
+    <div class="striplbl">scroll <b>→</b> · 7 frames · the cost curve is hover &lt; click &lt; read-around, each step optional</div>
+  </div>
+</section>
+
+<!-- ================= ACT 6 · DESIGN DECISIONS ================= -->
+<section id="decisions">
+  <div class="kicker">act 6 · design decisions</div>
+  <h2 class="act">Eight calls, each with its <em>receipts</em>.</h2>
+  <p class="act-sub">Every decision below traces to the research (R5), the case study (CS3), or the critique response (05). Two of them are cuts — the pitch shows its dead code.</p>
+
+  <div class="decisions">
+    <div class="dec panel">
+      <h4>Margin notes visible by default</h4>
+      <p>Gwern's finding is blunt: implementations requiring clicks <i class="r">"defeat much of the point."</i> Sidenotes reclaim the margin a 70ch line length creates on a wide monitor. JS overlap reflow, density cap of one note per paragraph, overflow collapses into the chip count.</p>
+      <div class="evs"><span class="ev">[<b>gwern</b>: visible by default]</span><span class="ev">[<b>R5 §9</b>: sidenotes on wide screens]</span></div>
+    </div>
+    <div class="dec panel">
+      <h4>Panels, never modals</h4>
+      <p>Report scroll position is <b>sacred</b>. NotebookLM's source viewer opens beside the answer; Perplexity's sources are a parallel region. The tri-panel keeps claim, distilled record, and source simultaneously visible — a wide monitor means we can be <i class="g">greedier than any of the exemplars</i>.</p>
+      <div class="evs"><span class="ev">[<b>R5</b>: panels beat modals]</span><span class="ev">[<b>CS3</b>: side-by-side persistence]</span></div>
+    </div>
+    <div class="dec panel">
+      <h4><span class="cut">Admiralty grades</span> — cut</h4>
+      <p>The two-axis B2-style grade was researched, designed, and then <i class="r">deleted</i>. Why: graders conflate the axes in practice (the known Admiralty critique), and a reliability letter derived from a category field is a guessed badge wearing a uniform. Valence + source count + the weakest-first sort carry the same trust signal with zero pseudo-precision.</p>
+      <div class="evs"><span class="ev r">[<b>05</b>: grades cut entirely]</span><span class="ev">[<b>R5</b>: axis-conflation warning]</span></div>
+    </div>
+    <div class="dec panel">
+      <h4>The valence ladder, not a heuristic</h4>
+      <p>The original VENDOR heuristic — infer the subject entity's domain — was <i class="r">uncomputable on real data</i>, and both critics caught it. The replacement: (1) parse the report's own <code>[vendor]</code>/<code>[practitioner]</code> labels; (2) computable proxies only; (3) unlabeled → <b>no badge, never a guessed one</b>. Badge tooltips show derivation inputs — the scite lesson.</p>
+      <div class="evs"><span class="ev">[<b>05</b>: valence ladder]</span><span class="ev">[<b>scite</b>: inspectable, never oracular]</span></div>
+    </div>
+    <div class="dec panel">
+      <h4>The docs-source card</h4>
+      <p>Docs sources skip distillation — they have <b>no DistilledRecord</b> to hover. Rather than render a broken card or mislabel them SECONDHAND, they get their own card: title, URL, <code>found_via</code>, first-heading excerpt from the content file — and they're excluded from valence entirely. A <i class="g">docs chip</i> is a fact, not a judgment.</p>
+      <div class="evs"><span class="ev">[<b>05</b>: docs card defined]</span><span class="ev">[<b>gwern</b>: annotation object per link]</span></div>
+    </div>
+    <div class="dec panel">
+      <h4>Controls index promoted to v1</h4>
+      <p>The skeptic's best shot — <i class="r">"a report is read once"</i> — relocated the surface's retention claim. The capability index (renamed from "Atlas" to avoid the tab collision) moves from v1.5 to <b>v1 for tool workspaces</b>: months later, "what were pydantic's serialization controls?" is answered by a filterable index, not a re-run.</p>
+      <div class="evs"><span class="ev">[<b>05</b>: read-once reframe]</span><span class="ev">[<b>05</b>: tab renamed Controls]</span></div>
+    </div>
+    <div class="dec panel">
+      <h4>Gap markers only where they mean something</h4>
+      <p>The first claim extractor would have flagged hedges and connective prose — <i class="r">crying wolf</i> kills a warning channel. v1 fires on exactly one pattern: <b>ranking-section sentences with zero citations</b>. Vocabulary expands only after observing real reports, and the "indexed sentences" stat keeps extraction drift honest.</p>
+      <div class="evs"><span class="ev">[<b>05</b>: cries-wolf fix]</span><span class="ev">[<b>Wikipedia</b>: citation needed, inline]</span></div>
+    </div>
+    <div class="dec panel">
+      <h4>No dead canvas in Read mode</h4>
+      <p>Before any chip is clicked, the evidence column would sit empty — dead pixels on the widest part of the screen. Instead, its idle state shows the <b>strongest evidence for the current viewport</b>, updating as you scroll: the panel teaches its own use before the first interaction.</p>
+      <div class="evs"><span class="ev">[<b>05</b>: dead-canvas fix]</span><span class="ev">[<b>CS3</b>: keep all three panels open]</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ACT 7 · BUILD PLAN ================= -->
+<section id="plan">
+  <div class="kicker">act 7 · build plan</div>
+  <h2 class="act">Spikes first, <em>then</em> the studio.</h2>
+  <p class="act-sub">Two one-hour spikes run before a line of UI is written — they gate scope, not decorate it. The budget is post-critique honest: tool mode is a second evidence model and is priced like one.</p>
+
+  <div class="timeline">
+    <div class="tphase spike">
+      <div class="tp-k">spike · gates scope split</div>
+      <div class="tp-n">1 h</div>
+      <div class="tp-d"><b>Citation-coverage script</b> — id-regex + normalized-URL + synthesis-pointer extraction over the 4 real report.md files.</div>
+    </div>
+    <div class="tphase spike">
+      <div class="tp-k">spike · gates highlight tier</div>
+      <div class="tp-n">1 h</div>
+      <div class="tp-d"><b>rapidfuzz hit-rate</b> — takeaway→content match ratios on agent-graph-knowledge-base. Sets fuzzy-tier expectations before v0.</div>
+    </div>
+    <div class="tphase pre">
+      <div class="tp-k">prerequisite · exact tier</div>
+      <div class="tp-n">quote span</div>
+      <div class="tp-d">Distill emits a verbatim <code>quote</code> per takeaway/claim — one schema field, one prompt line. Exact highlighting; fuzzy stays the labeled fallback.</div>
+    </div>
+    <div class="tphase core">
+      <div class="tp-k">v0 · deep-research mode</div>
+      <div class="tp-n">1.5 d</div>
+      <div class="tp-d">Chip extraction · hover evidence cards · tri-panel with fuzzy highlight. Answers question 1: "can I trust this sentence?"</div>
+    </div>
+    <div class="tphase core">
+      <div class="tp-k">v1</div>
+      <div class="tp-n">+2 d</div>
+      <div class="tp-d">Margin sidenotes · valence ladder badges · gap markers · source-rail interactions · audit table · <b>Controls for tool workspaces</b>.</div>
+    </div>
+    <div class="tphase">
+      <div class="tp-k">tool mode · honest price</div>
+      <div class="tp-n">+4 d</div>
+      <div class="tp-d">A <b>second evidence model</b>, not a rendering tweak: synthesis-pointer chips → Controls sections, docs-source cards, synthesis parser resilient to format drift. Was "+2 days"; the critique re-priced it.</div>
+    </div>
+  </div>
+
+  <div class="plan-detail">
+    <div class="plan-card panel">
+      <span class="pc-tag g">the machinery</span>
+      <h4>ReportIndex <span class="mono">· dr_cognee/dash/report_index.py</span></h4>
+      <ul>
+        <li>Pydantic model built on page load from <b>report.md + sources.jsonl + distilled/*.json + content/*</b></li>
+        <li>Members: claims (sentence, cited ids, valence roll-up), citation→evidence map (takeaway + match span + confidence), gap list</li>
+        <li>Server-rendered markdown with a custom pass: id tokens → chips, claim index, margin-note data attributes</li>
+        <li>Client JS at Alpine scale, no build step: sidenote reflow (~80 lines), panel management, table sort</li>
+        <li>Cached per (citation, content mtime); invalidated by the same watcher as mission</li>
+      </ul>
+    </div>
+    <div class="plan-card panel">
+      <span class="pc-tag a">pipeline asks — two one-liners</span>
+      <h4>Small edits, big downstream</h4>
+      <ul>
+        <li><b>Distill emits <code>quote</code></b> per takeaway/claim — upgraded from recommendation to <i class="r">prerequisite for the exact-highlight tier</i></li>
+        <li><b>Report skill keeps the <code>[src_xxxx]</code> citation form</b> — one sentence in the skill, much less tolerant-parsing risk</li>
+        <li><b>Tool-graph skill amended now</b> with the id-citation contract (accepted in the critique response)</li>
+        <li>Later, optional: per-claim valence from the distill LLM — heuristic kept as fallback forever</li>
+      </ul>
+    </div>
+    <div class="plan-card panel">
+      <span class="pc-tag r">risks, priced</span>
+      <h4>What can go wrong, and what catches it</h4>
+      <ul>
+        <li><b>Fuzzy match misleads</b> → always show confidence; below threshold, <i class="r">no highlight rather than a wrong one</i></li>
+        <li><b>Valence misfires</b> → tooltips show derivation inputs; errors surface where scrutiny already is (the weakest-first sort)</li>
+        <li><b>Report format drift</b> → best-effort per sentence; the "indexed sentences 38/41" stat keeps degradation visible</li>
+        <li><b>Shared chassis</b> → one <code>provenance.py</code>, one confidence vocabulary: <code>exact / fuzzy(ratio) / revision-unknown / unresolved</code>; Esc = dismiss topmost pane, everywhere</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ACT 8 · THE CRITICS ================= -->
+<section id="critics">
+  <div class="kicker rose">act 8 · what the critics said</div>
+  <h2 class="act">The two best <em class="r">objections</em> — and what they changed.</h2>
+  <p class="act-sub">Both were accepted or absorbed. A pitch that can't show its strongest counterargument isn't a pitch for a verification tool.</p>
+
+  <div class="critpairs">
+    <div class="critpair">
+      <div class="crit panel">
+        <div class="who">the skeptic · strongest objection</div>
+        <blockquote>"A report is read once. You're building a cathedral for a document with a 20-minute lifespan."</blockquote>
+      </div>
+      <div class="resp panel">
+        <div class="who">response · verdict: modify — pitch reframed, design changed</div>
+        <p><b>The per-run value is real and stands on its own:</b> that 20-minute read is exactly where a wrong ranking gets adopted or caught, and this surface makes catching it cost 2 hovers and a click instead of thirty tab-switches. The 263-citation report is unreadable-with-verification today; it's the primary artifact of the whole pipeline.</p>
+        <p><b>But the retention claim moved.</b> It now lives in the <i class="g">Controls capability index</i> — the piece you return to months later — which was promoted from v1.5 to v1 for tool workspaces precisely because of this objection. Read/audit is the per-run pitch; Controls is the shelf life.</p>
+      </div>
+    </div>
+    <div class="critpair">
+      <div class="crit panel">
+        <div class="who">both critics · material finding</div>
+        <blockquote>"Your VENDOR heuristic — match the source URL against the subject entity's domain — is uncomputable. Nothing in the data model tells you which entity a claim is about."</blockquote>
+      </div>
+      <div class="resp panel">
+        <div class="who">response · verdict: accept — heuristic deleted</div>
+        <p><b>Correct, and it shipped a better design.</b> The subject-entity inference is dropped entirely. In its place, the valence ladder: (1) the report's own <i class="g">[vendor]/[practitioner] labels</i> — which the agent already writes — parsed as ground truth; (2) computable proxies only (source category, docs-domain); (3) unlabeled means <i class="r">no badge</i>.</p>
+        <p><b>The same review also cut the Admiralty grades</b> (complexity without signal) and re-priced tool mode at +4 days. Every one of those decisions is encoded in design §6, which supersedes the original sections where they conflict.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ACT 9 · VERDICT ================= -->
+<section id="verdict">
+  <div class="kicker">act 9 · verdict</div>
+  <h2 class="act">Build it <em>second</em>.</h2>
+
+  <div class="verdict panel">
+    <div class="scores">
+      <div class="score"><div class="sq top"><span class="l">DV</span><span class="v">5</span></div><div class="cap">demo value</div></div>
+      <div class="score"><div class="sq"><span class="l">DA</span><span class="v">4</span></div><div class="cap">daily adoption</div></div>
+      <div class="score"><div class="sq"><span class="l">BC</span><span class="v">4</span></div><div class="cap">build cost</div></div>
+      <div class="score"><div class="sq"><span class="l">MD</span><span class="v">4</span></div><div class="cap">maintenance drag</div></div>
+      <div class="score"><div class="sq top"><span class="l">WC</span><span class="v">5</span></div><div class="cap">wide-canvas fit</div></div>
+    </div>
+    <div class="vmid">
+      <p class="big">The dossier is the surface where the pipeline's output <b>earns trust</b> — chips, margin notes, and a tri-panel that make every sentence's promise <b>redeemable in one hover</b>, an audit table that surfaces the <i class="r">weakest claims first</i>, and a Controls index that keeps paying rent months after the run. It ships inside the shared-chassis v0 week (chips + hover cards ≈ dossier v0), and its two spikes cost two hours before anything is bet.</p>
+    </div>
+    <div class="order">
+      <div class="rank">2nd</div>
+      <div class="lbl">build order</div>
+      <div class="seq">mission → <b>dossier</b> → atlas</div>
+    </div>
+  </div>
+
+  <footer class="colophon">
+    <span>drc dossier · pitch report · 2026-07-07</span>
+    <span>evidence: R5 provenance-report-ux · CS3 evidence-first-readers · 05-critique-response §dossier · design drc-dossier.md §1–6</span>
+    <span>family accent: #7ee787 evidence / #ff7b72 doubt</span>
+    <span>set in Source Serif 4 · Space Grotesk · Fira Code</span>
+  </footer>
+</section>
+
+</div><!-- /canvas -->
+
+<script>
+// Mode tabs in the mockup: switch the bottom strip (Read hint / Audit table / Controls index)
+(function () {
+  var tabs = document.querySelectorAll('#modetabs .modetab');
+  var views = document.querySelectorAll('.bottomview');
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      var v = tab.getAttribute('data-view');
+      tabs.forEach(function (t) { t.classList.toggle('active', t === tab); });
+      views.forEach(function (view) {
+        view.classList.toggle('active', view.getAttribute('data-view') === v);
+      });
+    });
+  });
+  // default: land with the audit table visible (the pitch wants both strips discoverable)
+  var auditTab = document.querySelector('#modetabs .modetab[data-view="audit"]');
+  if (auditTab) { auditTab.click(); }
+})();
+</script>
+</body>
+</html>

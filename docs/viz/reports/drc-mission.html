@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>drc mission — the Run Cockpit · pitch report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   drc mission — Run Cockpit pitch
+   Family design language: dark GitHub-ish base.
+   This report's accent pair: amber #d29922 + lime #7ee787
+   ============================================================ */
+:root {
+  --bg: #0d1117;
+  --panel: #161b22;
+  --panel2: #1b2230;
+  --panel3: #10141b;
+  --border: #30363d;
+  --border-soft: #21262d;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --faint: #6e7681;
+  --amber: #d29922;
+  --amber-dim: rgba(210,153,34,.14);
+  --lime: #7ee787;
+  --lime-dim: rgba(126,231,135,.12);
+  --green: #3fb950;
+  --red: #f85149;
+  --red-dim: rgba(248,81,73,.13);
+  --pink: #f778ba;
+  --violet: #bc8cff;
+  --violet-dim: rgba(188,140,255,.16);
+  --blue: #58a6ff;
+  --gold: #e3b341;
+  --mono: 'Fira Code', ui-monospace, monospace;
+  --grot: 'Space Grotesk', system-ui, sans-serif;
+  --serif: 'Source Serif 4', Georgia, serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--grot);
+  font-size: 16px;
+  line-height: 1.5;
+}
+code, pre, .mono, kbd {
+  font-family: var(--mono);
+  font-feature-settings: "liga" 1, "calt" 1;
+}
+.prose { font-family: var(--serif); font-size: 17.5px; line-height: 1.62; color: #d5dce4; }
+.prose strong { color: var(--text); }
+.prose em { color: #c9d4de; }
+kbd {
+  display: inline-block; padding: 1px 7px; font-size: 12.5px;
+  background: #21262d; border: 1px solid var(--border); border-bottom-width: 2px;
+  border-radius: 5px; color: var(--lime); line-height: 1.5;
+}
+/* ---------- page frame: wide canvas ---------- */
+.canvas { width: 3560px; margin: 0 auto; padding: 0 40px 200px; }
+section.act { padding: 96px 0 40px; border-top: 1px solid var(--border-soft); }
+section.act:first-of-type { border-top: none; }
+.act-kicker {
+  font-family: var(--mono); font-size: 13px; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--amber); margin-bottom: 10px;
+}
+.act-kicker .n { color: var(--lime); }
+h2.act-title { font-size: 44px; font-weight: 700; letter-spacing: -.015em; margin-bottom: 8px; }
+.act-sub { color: var(--muted); font-size: 19px; max-width: 1400px; margin-bottom: 44px; font-family: var(--serif); }
+/* ---------- fixed nav ---------- */
+nav#actnav {
+  position: fixed; top: 22px; left: 22px; z-index: 200;
+  background: rgba(22,27,34,.92); backdrop-filter: blur(8px);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 12px 10px; width: 210px;
+  box-shadow: 0 8px 30px rgba(0,0,0,.5);
+}
+nav#actnav .navhead {
+  font-family: var(--mono); font-size: 11px; color: var(--amber);
+  letter-spacing: .18em; text-transform: uppercase; padding: 0 8px 8px;
+  border-bottom: 1px solid var(--border-soft); margin-bottom: 6px;
+  display: flex; align-items: center; gap: 7px;
+}
+nav#actnav .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--lime); animation: pulse 1.6s ease-in-out infinite; }
+nav#actnav a {
+  display: flex; gap: 8px; align-items: baseline; text-decoration: none;
+  color: var(--muted); font-size: 12.5px; padding: 4px 8px; border-radius: 6px;
+  font-family: var(--grot); font-weight: 500;
+}
+nav#actnav a .n { font-family: var(--mono); font-size: 11px; color: var(--faint); width: 18px; }
+nav#actnav a:hover { color: var(--text); background: var(--panel2); }
+nav#actnav a.active { color: var(--lime); background: var(--lime-dim); }
+nav#actnav a.active .n { color: var(--lime); }
+/* ---------- evidence chips ---------- */
+.chip {
+  display: inline-block; font-family: var(--mono); font-size: 11px;
+  color: var(--amber); background: var(--amber-dim);
+  border: 1px solid rgba(210,153,34,.35); border-radius: 4px;
+  padding: 1px 7px; margin: 0 3px; white-space: nowrap; vertical-align: 1px;
+}
+.chip.lime { color: var(--lime); background: var(--lime-dim); border-color: rgba(126,231,135,.35); }
+.chip.violet { color: var(--violet); background: var(--violet-dim); border-color: rgba(188,140,255,.4); }
+/* ---------- generic panels & grids ---------- */
+.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 26px 30px; }
+.panel h3 { font-size: 21px; margin-bottom: 14px; letter-spacing: -.01em; }
+.cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.cols-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 28px; }
+.cols-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; }
+/* ---------- status glyph language (shared everywhere) ---------- */
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+@keyframes crawl { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .45; transform: scale(.82); } }
+.st { display: inline-flex; width: 100%; justify-content: center; font-family: var(--mono); font-size: 13px; }
+.st.done  { color: var(--green); }
+.st.run   { color: var(--lime); animation: crawl 1.15s ease-in-out infinite; }
+.st.q     { color: #545d68; }
+.st.na    { color: #3a424c; }
+.st.skip  { color: var(--pink); }
+.st.err   { color: var(--red); font-weight: 700; }
+.st.retry { color: var(--gold); animation: pulse 2.2s ease-in-out infinite; }
+.st.dis   { color: var(--amber); font-weight: 700; }
+.syl { /* since-you-left violet dot slot */
+  display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+}
+.syl.on { background: var(--violet); box-shadow: 0 0 6px rgba(188,140,255,.7); }
+/* ============================================================
+   HERO
+   ============================================================ */
+#hero { padding: 110px 0 70px; border-top: none; }
+.hero-grid { display: grid; grid-template-columns: 1780px 1fr; gap: 70px; align-items: start; }
+.hero-eyebrow {
+  font-family: var(--mono); font-size: 14px; color: var(--muted); margin-bottom: 22px;
+  display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+}
+.hero-eyebrow .cmd { color: var(--lime); background: var(--lime-dim); border: 1px solid rgba(126,231,135,.3); padding: 3px 12px; border-radius: 6px; }
+.hero-eyebrow .fam { color: var(--faint); }
+h1.hero-title { font-size: 96px; line-height: 1.02; letter-spacing: -.03em; font-weight: 700; margin-bottom: 26px; }
+h1.hero-title .amber { color: var(--amber); }
+h1.hero-title .lime { color: var(--lime); }
+.hero-tag { font-family: var(--mono); font-size: 26px; color: var(--text); margin-bottom: 26px; }
+.hero-tag .sep { color: var(--faint); }
+.hero-lede { max-width: 1500px; font-size: 20px; }
+.hero-lede + .hero-lede { margin-top: 14px; }
+.statboard { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 12px; }
+.stat {
+  background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+  padding: 24px 26px; position: relative; overflow: hidden;
+}
+.stat::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--amber); }
+.stat:nth-child(even)::before { background: var(--lime); }
+.stat .v { font-family: var(--mono); font-size: 40px; font-weight: 700; color: var(--text); letter-spacing: -.02em; }
+.stat .v .u { color: var(--amber); }
+.stat:nth-child(even) .v .u { color: var(--lime); }
+.stat .k { color: var(--muted); font-size: 14.5px; margin-top: 8px; line-height: 1.45; }
+.stat.wide { grid-column: 1 / -1; }
+/* ============================================================
+   ACT 2 — the moment
+   ============================================================ */
+.moment-grid { display: grid; grid-template-columns: 1.05fr 1.25fr 1.35fr; gap: 28px; align-items: stretch; }
+.qlist { list-style: none; counter-reset: q; display: flex; flex-direction: column; gap: 12px; }
+.qlist li {
+  counter-increment: q; display: grid; grid-template-columns: 52px 1fr auto; gap: 16px;
+  align-items: center; background: var(--panel3); border: 1px solid var(--border-soft);
+  border-radius: 10px; padding: 14px 18px;
+}
+.qlist li::before {
+  content: "Q" counter(q); font-family: var(--mono); font-size: 15px; font-weight: 700;
+  color: var(--amber); background: var(--amber-dim); border-radius: 8px;
+  width: 44px; height: 34px; display: flex; align-items: center; justify-content: center;
+}
+.qlist li .q { font-size: 16.5px; }
+.qlist li .why { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.qlist li.core { border-color: rgba(126,231,135,.4); }
+.qlist li.core::before { color: var(--lime); background: var(--lime-dim); }
+.vs-table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+.vs-table th {
+  font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: .12em;
+  color: var(--muted); text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border);
+}
+.vs-table td { padding: 10px 12px; border-bottom: 1px solid var(--border-soft); vertical-align: top; }
+.vs-table td.bad { color: var(--muted); }
+.vs-table td.bad::before { content: "✗ "; color: var(--red); font-family: var(--mono); }
+.vs-table td.good::before { content: "✓ "; color: var(--lime); font-family: var(--mono); }
+.vs-table td:first-child { font-weight: 600; color: var(--text); white-space: nowrap; }
+.frame-note {
+  margin-top: 18px; padding: 16px 20px; border-left: 3px solid var(--amber);
+  background: var(--amber-dim); border-radius: 0 10px 10px 0; font-family: var(--serif);
+  font-size: 16px; color: #e2d9c3;
+}
+/* ============================================================
+   ACT 3 — loops + architecture
+   ============================================================ */
+.loops { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-bottom: 40px; }
+.loop { position: relative; }
+.loop .loop-n {
+  position: absolute; top: -14px; left: 24px; font-family: var(--mono); font-size: 12px;
+  background: var(--panel2); border: 1px solid var(--border); color: var(--lime);
+  padding: 2px 12px; border-radius: 20px; letter-spacing: .12em;
+}
+.loop h3 { display: flex; align-items: baseline; gap: 12px; }
+.loop h3 .freq { font-family: var(--mono); font-size: 12.5px; color: var(--muted); font-weight: 400; }
+.loop .flow { font-family: var(--mono); font-size: 13.5px; color: var(--muted); line-height: 2.05; margin-top: 10px; }
+.loop .flow .hi { color: var(--lime); }
+.loop .flow .am { color: var(--amber); }
+.loop .flow .vi { color: var(--violet); }
+.loop .flow .rd { color: var(--red); }
+.loop .verdict { margin-top: 14px; font-size: 14.5px; color: var(--text); border-top: 1px dashed var(--border); padding-top: 12px; }
+/* architecture diagram */
+.arch { background: var(--panel3); border: 1px solid var(--border); border-radius: 14px; padding: 40px 44px 30px; }
+.arch-flow { display: grid; grid-template-columns: 560px 60px 480px 60px 420px 60px 380px 60px 1fr; align-items: center; gap: 0; }
+.abox { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; }
+.abox .t { font-family: var(--mono); font-size: 14.5px; font-weight: 700; color: var(--lime); margin-bottom: 8px; }
+.abox .t.amber { color: var(--amber); }
+.abox ul { list-style: none; font-family: var(--mono); font-size: 12px; color: var(--muted); line-height: 1.85; }
+.abox ul li::before { content: "· "; color: var(--faint); }
+.abox ul li b { color: var(--text); font-weight: 500; }
+.aarrow { text-align: center; font-family: var(--mono); color: var(--amber); font-size: 22px; position: relative; }
+.aarrow .lbl { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 10px; color: var(--faint); white-space: nowrap; }
+.arch-notes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 30px; }
+.anote { border-top: 2px solid var(--border); padding-top: 12px; font-size: 13.5px; color: var(--muted); }
+.anote b { color: var(--text); display: block; font-family: var(--mono); font-size: 12.5px; margin-bottom: 4px; }
+.anote.warn { border-top-color: var(--amber); }
+.anote.good { border-top-color: var(--lime); }
+/* ============================================================
+   ACT 4 — THE MOCKUP (cockpit)
+   ============================================================ */
+.cockpit-wrap { position: relative; }
+.cockpit {
+  width: 3480px; background: #0a0e14; border: 1px solid #3d444d; border-radius: 14px;
+  overflow: hidden; box-shadow: 0 24px 80px rgba(0,0,0,.55);
+  font-family: var(--mono); font-size: 13px;
+}
+.ck-chrome {
+  display: flex; align-items: center; gap: 16px; padding: 10px 18px;
+  background: #161b22; border-bottom: 1px solid var(--border);
+}
+.ck-chrome .dots { display: flex; gap: 7px; }
+.ck-chrome .dots i { width: 12px; height: 12px; border-radius: 50%; display: block; }
+.ck-chrome .dots i:nth-child(1) { background: #f85149; } .ck-chrome .dots i:nth-child(2) { background: #d29922; } .ck-chrome .dots i:nth-child(3) { background: #3fb950; }
+.ck-chrome .url {
+  flex: 0 0 760px; background: #0d1117; border: 1px solid var(--border); border-radius: 7px;
+  padding: 5px 14px; color: var(--muted); font-size: 12.5px;
+}
+.ck-chrome .url b { color: var(--text); font-weight: 500; }
+.ck-chrome .mode { margin-left: auto; display: flex; gap: 0; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; }
+.ck-chrome .mode span { padding: 4px 18px; font-size: 12px; color: var(--muted); }
+.ck-chrome .mode span.on { background: var(--lime-dim); color: var(--lime); }
+.ck-chrome .obs { color: var(--faint); font-size: 11.5px; }
+.ck-chrome .seenchip {
+  font-size: 11.5px; color: var(--violet); background: var(--violet-dim);
+  border: 1px solid rgba(188,140,255,.45); border-radius: 20px; padding: 3px 14px;
+}
+/* --- top strip --- */
+.ck-top { display: grid; grid-template-columns: 1150px 1fr 700px; border-bottom: 1px solid var(--border); background: #0d1117; }
+.ck-now { padding: 16px 24px; border-right: 1px solid var(--border-soft); }
+.ck-now .nowline { display: flex; align-items: baseline; gap: 12px; font-size: 15px; }
+.ck-now .nowline .live { color: var(--lime); animation: pulse 1.4s infinite; font-weight: 700; }
+.ck-now .nowline b { color: var(--text); font-weight: 600; }
+.ck-now .nowline .id { color: var(--amber); }
+.ck-now .meta { color: var(--muted); font-size: 12px; margin-top: 7px; display: flex; gap: 18px; }
+.ck-now .meta .ok { color: var(--green); }
+.ck-now .logline { margin-top: 10px; padding: 7px 12px; background: var(--panel3); border-left: 2px solid var(--lime); border-radius: 0 6px 6px 0; color: #b8c2cc; font-size: 12.5px; }
+.ck-now .logline .lg { color: var(--faint); }
+.ck-now .spark { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+.ck-now .spark svg { display: block; }
+.ck-now .spark .lbl { color: var(--faint); font-size: 11px; }
+/* funnel lanes */
+.ck-funnel { padding: 14px 26px; border-right: 1px solid var(--border-soft); display: flex; flex-direction: column; justify-content: center; gap: 12px; }
+.lane { display: flex; align-items: center; gap: 14px; }
+.lane .lname { width: 120px; font-size: 11.5px; letter-spacing: .14em; color: var(--muted); text-transform: uppercase; }
+.lane .lname b { display: block; color: var(--text); font-size: 13px; letter-spacing: 0; text-transform: none; }
+.fstep { display: flex; align-items: center; gap: 14px; }
+.fcount { text-align: center; cursor: pointer; padding: 4px 14px; border-radius: 8px; border: 1px solid transparent; }
+.fcount:hover { border-color: var(--border); background: var(--panel2); }
+.fcount .n { font-size: 23px; font-weight: 700; color: var(--text); display: block; line-height: 1.1; }
+.fcount .s { font-size: 10.5px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+.fcount.hot .n { color: var(--lime); }
+.fcount.zero .n { color: var(--faint); }
+.farrow { color: #444c56; font-size: 16px; }
+.ftail { display: flex; gap: 10px; margin-left: 20px; padding-left: 20px; border-left: 1px solid var(--border-soft); }
+.fbadge { font-size: 12px; padding: 3px 11px; border-radius: 14px; border: 1px solid; }
+.fbadge.skip { color: var(--pink); border-color: rgba(247,120,186,.4); background: rgba(247,120,186,.08); }
+.fbadge.err { color: var(--red); border-color: rgba(248,81,73,.45); background: var(--red-dim); }
+.fbadge.retry { color: var(--gold); border-color: rgba(227,179,65,.4); background: rgba(227,179,65,.08); }
+/* error strip */
+.ck-errs { padding: 14px 22px; background: linear-gradient(90deg, rgba(248,81,73,.07), transparent 70%); }
+.ck-errs .ehead { color: var(--red); font-weight: 700; font-size: 13px; letter-spacing: .1em; margin-bottom: 8px; }
+.ck-errs .erow { display: flex; gap: 10px; align-items: baseline; font-size: 12.5px; padding: 4px 8px; border-radius: 6px; cursor: pointer; }
+.ck-errs .erow:hover { background: rgba(248,81,73,.1); }
+.ck-errs .erow .id { color: var(--amber); }
+.ck-errs .erow .msg { color: #c9d1d9; }
+.ck-errs .erow .st8 { color: var(--faint); margin-left: auto; }
+.ck-errs .erow .dead { color: var(--red); }
+.ck-errs .erow .heal { color: var(--gold); }
+/* --- main band --- */
+.ck-main { display: grid; grid-template-columns: 300px 1fr 640px; background: #0a0e14; }
+/* facet rail */
+.ck-rail { border-right: 1px solid var(--border-soft); padding: 18px 0; }
+.rgroup { padding: 0 20px 16px; }
+.rgroup + .rgroup { border-top: 1px solid var(--border-soft); padding-top: 14px; }
+.rgroup .rh { color: var(--muted); font-size: 11px; letter-spacing: .15em; text-transform: uppercase; margin-bottom: 8px; display: flex; justify-content: space-between; }
+.rrow { display: flex; justify-content: space-between; align-items: center; padding: 3.5px 8px; margin: 0 -8px; border-radius: 6px; font-size: 12.5px; color: #c9d1d9; cursor: pointer; }
+.rrow:hover { background: var(--panel2); }
+.rrow.sel { background: var(--amber-dim); color: var(--amber); }
+.rrow .c { color: var(--muted); font-size: 12px; }
+.rrow .warn { color: var(--amber); }
+.rrow .band { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 8px; }
+/* grid */
+.ck-grid { padding: 14px 26px 20px; overflow: hidden; }
+.gtoolbar { display: flex; align-items: center; gap: 18px; margin-bottom: 12px; }
+.gtoolbar .fh { font-size: 12px; color: var(--muted); }
+.gtoolbar .modeswitch { display: flex; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; margin-left: auto; }
+.gtoolbar .modeswitch span { padding: 4px 20px; font-size: 12px; color: var(--muted); }
+.gtoolbar .modeswitch span.on { background: var(--lime-dim); color: var(--lime); font-weight: 600; }
+.gtoolbar .kbd-hint { color: var(--faint); font-size: 11px; }
+.lane-h {
+  display: grid; align-items: center;
+  font-size: 10.5px; color: var(--faint); letter-spacing: .1em; text-transform: uppercase;
+  padding: 10px 0 6px; border-bottom: 1px solid var(--border-soft); margin-top: 8px;
+}
+.lane-h .lt { color: var(--amber); font-size: 12px; font-weight: 700; letter-spacing: .16em; }
+.lane-h .lt small { color: var(--faint); font-weight: 400; letter-spacing: .06em; margin-left: 10px; text-transform: none; }
+.lane-h span { text-align: center; }
+.lane-h .left { text-align: left; }
+.grow {
+  display: grid; align-items: center; height: 28px; font-size: 12.5px;
+  border-bottom: 1px solid #141a22; cursor: pointer; position: relative;
+}
+.grow:hover { background: var(--panel2); }
+.grow.sel { background: var(--amber-dim); outline: 1px solid rgba(210,153,34,.5); border-radius: 4px; }
+.web-cols  { grid-template-columns: 16px 10px 132px 44px 44px 44px 44px 46px 26px 1fr 130px; }
+.docs-cols { grid-template-columns: 16px 10px 132px 88px 88px 46px 26px 1fr 130px; }
+.grow .cat { width: 4px; height: 18px; border-radius: 2px; justify-self: center; }
+.cat.web { background: #388bfd; } .cat.gh { background: #8957e5; } .cat.docs { background: #9e6a03; }
+.grow .sid { color: #79838f; }
+.grow .rel { text-align: center; font-size: 11px; }
+.rel.hi { color: var(--lime); } .rel.med { color: var(--muted); } .rel.lo { color: var(--faint); }
+.grow .flag { text-align: center; color: var(--amber); font-size: 13px; }
+.grow .ttl { color: #cdd6df; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 20px; }
+.grow .ttl .dom { color: var(--faint); }
+.grow .aux { color: var(--faint); font-size: 11px; text-align: right; }
+.grow .aux.retrying { color: var(--gold); }
+.grow .aux.errored { color: var(--red); }
+.grow.more { color: var(--faint); font-size: 11.5px; border-bottom: none; height: 26px; }
+.grow.more .ttl { color: var(--faint); font-style: normal; }
+.legend-inline { display: flex; gap: 22px; margin-top: 14px; font-size: 11.5px; color: var(--muted); flex-wrap: wrap; }
+.legend-inline span b { font-weight: 400; }
+/* queue tab strip (bottom of grid area) */
+.qstrip { margin-top: 16px; border-top: 1px solid var(--border-soft); padding-top: 12px; display: flex; align-items: center; gap: 12px; }
+.qtab { padding: 5px 16px; border: 1px solid var(--border); border-radius: 8px; color: var(--muted); font-size: 12px; }
+.qtab b { color: var(--text); font-weight: 600; }
+.qtab .pl { color: var(--violet); }
+.qtab.on { border-color: rgba(210,153,34,.55); background: var(--amber-dim); color: var(--amber); }
+.qtab.on b { color: var(--amber); }
+.verbstrip { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--faint); }
+.verbstrip i { font-style: normal; width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; background: var(--panel2); border: 1px solid var(--border); border-radius: 5px; color: var(--lime); cursor: pointer; }
+.verbstrip i.x { color: var(--pink); } .verbstrip i.z { color: var(--muted); } .verbstrip i.r { color: var(--gold); }
+/* inspector */
+.ck-insp { border-left: 1px solid var(--border-soft); padding: 18px 24px; background: #0c1017; }
+.ck-insp .ih { display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px; }
+.ck-insp .ih .id { color: var(--amber); font-size: 14px; font-weight: 700; }
+.ck-insp .ih .badge { font-size: 10.5px; padding: 2px 10px; border-radius: 12px; border: 1px solid rgba(126,231,135,.4); color: var(--lime); background: var(--lime-dim); }
+.ck-insp .ih .badge.cat { border-color: rgba(88,166,255,.4); color: var(--blue); background: rgba(88,166,255,.08); }
+.ck-insp .ititle { font-size: 14.5px; color: var(--text); font-weight: 600; line-height: 1.4; margin-bottom: 4px; }
+.ck-insp .iurl { font-size: 11px; color: var(--faint); margin-bottom: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.isec { margin-bottom: 14px; }
+.isec .sh { font-size: 11px; color: var(--muted); letter-spacing: .14em; text-transform: uppercase; border-bottom: 1px solid var(--border-soft); padding-bottom: 5px; margin-bottom: 8px; display: flex; justify-content: space-between; }
+.isec ul { list-style: none; }
+.isec ul li { font-size: 12.5px; color: #c3ccd6; line-height: 1.55; padding: 3px 0 3px 16px; position: relative; }
+.isec ul li::before { content: "▸"; position: absolute; left: 0; color: var(--lime); }
+.echips { display: flex; flex-wrap: wrap; gap: 7px; }
+.echip { font-size: 11px; padding: 2px 10px; border-radius: 12px; background: var(--panel2); border: 1px solid var(--border); color: #adb8c4; cursor: pointer; }
+.echip:hover { border-color: var(--lime); color: var(--lime); }
+.echip.new { border-color: rgba(188,140,255,.5); color: var(--violet); }
+.claim { background: var(--panel3); border-left: 2px solid var(--amber); border-radius: 0 7px 7px 0; padding: 8px 12px; font-size: 12px; color: #c9c2ae; margin-bottom: 7px; font-style: italic; }
+.claim .who { color: var(--amber); font-style: normal; font-size: 11px; display: block; margin-top: 4px; }
+.iacc { border: 1px solid var(--border-soft); border-radius: 8px; margin-top: 6px; }
+.iacc .ah { padding: 7px 12px; font-size: 11.5px; color: var(--muted); display: flex; justify-content: space-between; cursor: pointer; }
+.iacc .ah .car { color: var(--faint); }
+.ifoot { margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--border-soft); font-size: 10.5px; color: var(--faint); display: flex; gap: 16px; }
+/* --- bottom band --- */
+.ck-bottom { display: grid; grid-template-columns: 1fr 1060px; border-top: 1px solid var(--border); background: #0d1117; }
+.ck-log { padding: 16px 26px; border-right: 1px solid var(--border-soft); }
+.bh { font-size: 11px; color: var(--muted); letter-spacing: .15em; text-transform: uppercase; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: baseline; }
+.bh .sub { text-transform: none; letter-spacing: 0; color: var(--faint); font-size: 11px; }
+.logrow { display: grid; grid-template-columns: 64px 1fr; gap: 16px; font-size: 12.5px; padding: 4px 0; }
+.logrow .t { color: var(--faint); }
+.logrow .m { color: #b8c2cc; font-family: var(--serif); font-size: 14px; }
+.logrow .m code { font-size: 12px; color: var(--amber); background: var(--panel3); padding: 0 5px; border-radius: 4px; }
+.logrow.newest .m { color: var(--text); }
+.logrow.newest .t { color: var(--lime); }
+/* entity pulse */
+.ck-pulse { padding: 16px 26px; }
+.prow { display: grid; grid-template-columns: 200px 1fr 44px; gap: 14px; align-items: center; padding: 3px 0; font-size: 12.5px; cursor: pointer; }
+.prow:hover .en { color: var(--lime); }
+.prow .en { color: #c3ccd6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prow .en.new { color: var(--violet); font-weight: 700; }
+.prow .en.new::after { content: " ●"; font-size: 9px; }
+.prow .bar { height: 9px; border-radius: 4px; background: linear-gradient(90deg, var(--amber), var(--lime)); opacity: .78; }
+.prow .n { color: var(--muted); text-align: right; }
+/* callout dots + legend */
+.co {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--amber); color: #0d1117; font-family: var(--mono);
+  font-size: 12.5px; font-weight: 700; margin-left: 10px; vertical-align: -2px;
+  box-shadow: 0 0 0 4px rgba(210,153,34,.25); flex: 0 0 24px;
+}
+.callout-legend { display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; margin-top: 34px; }
+.cl-item { display: grid; grid-template-columns: 30px 1fr; gap: 12px; align-items: start; font-size: 13.5px; color: var(--muted); }
+.cl-item .co { margin: 0; }
+.cl-item b { color: var(--text); display: block; margin-bottom: 3px; font-size: 14px; }
+/* ============================================================
+   ACT 5 — filmstrip
+   ============================================================ */
+.filmstrip-outer { position: relative; }
+.filmstrip {
+  display: flex; gap: 36px; overflow-x: auto; padding: 10px 6px 26px;
+  scroll-snap-type: x proximity;
+}
+.filmstrip::-webkit-scrollbar { height: 12px; }
+.filmstrip::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
+.filmstrip::-webkit-scrollbar-track { background: var(--panel3); border-radius: 8px; }
+.frame { flex: 0 0 1560px; scroll-snap-align: start; }
+.frame .fhead { display: flex; align-items: baseline; gap: 16px; margin-bottom: 12px; }
+.frame .fhead .fn { font-family: var(--mono); font-size: 13px; color: var(--lime); background: var(--lime-dim); border: 1px solid rgba(126,231,135,.3); border-radius: 6px; padding: 2px 12px; }
+.frame .fhead h3 { font-size: 22px; }
+.frame .fhead .ft { font-family: var(--mono); font-size: 12.5px; color: var(--faint); margin-left: auto; }
+.mini { background: #0a0e14; border: 1px solid #3d444d; border-radius: 12px; overflow: hidden; font-family: var(--mono); font-size: 11.5px; box-shadow: 0 14px 44px rgba(0,0,0,.45); }
+.mini .m-top { display: grid; grid-template-columns: 560px 1fr; border-bottom: 1px solid var(--border); background: #0d1117; }
+.mini .m-now { padding: 10px 16px; border-right: 1px solid var(--border-soft); }
+.mini .m-now .l1 { font-size: 12.5px; } .mini .m-now .l1 .live { color: var(--lime); animation: pulse 1.4s infinite; }
+.mini .m-now .l1 .idle { color: var(--muted); }
+.mini .m-now .l2 { color: var(--faint); font-size: 10.5px; margin-top: 4px; }
+.mini .m-fun { padding: 8px 16px; display: flex; flex-direction: column; justify-content: center; gap: 5px; }
+.mini .mlane { display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--muted); }
+.mini .mlane .ln { width: 44px; color: var(--faint); text-transform: uppercase; font-size: 9.5px; letter-spacing: .1em; }
+.mini .mlane b { color: var(--text); font-size: 13px; font-weight: 700; }
+.mini .mlane b.hot { color: var(--lime); }
+.mini .mlane .fa { color: #444c56; }
+.mini .mlane .mb { font-size: 10px; padding: 1px 8px; border-radius: 10px; border: 1px solid; }
+.mini .mlane .mb.err { color: var(--red); border-color: rgba(248,81,73,.45); }
+.mini .mlane .mb.skip { color: var(--pink); border-color: rgba(247,120,186,.4); }
+.mini .m-body { display: grid; grid-template-columns: 1fr 470px; }
+.mini .m-grid { padding: 10px 16px 14px; border-right: 1px solid var(--border-soft); }
+.mini .mrow { display: grid; grid-template-columns: 10px 96px 30px 30px 30px 30px 1fr; align-items: center; height: 22px; font-size: 10.5px; border-bottom: 1px solid #131922; }
+.mini .mrow.d2 { grid-template-columns: 10px 96px 60px 60px 1fr; }
+.mini .mrow .sid { color: #79838f; }
+.mini .mrow .ttl { color: #b9c3cd; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mini .mrow .st { font-size: 11px; }
+.mini .mlaneh { font-size: 9.5px; color: var(--amber); letter-spacing: .14em; text-transform: uppercase; padding: 8px 0 4px; border-bottom: 1px solid var(--border-soft); font-weight: 700; }
+.mini .mlaneh small { color: var(--faint); font-weight: 400; letter-spacing: .04em; margin-left: 8px; }
+.mini .m-side { padding: 10px 16px; }
+.mini .m-side .sh { font-size: 9.5px; color: var(--muted); letter-spacing: .14em; text-transform: uppercase; border-bottom: 1px solid var(--border-soft); padding-bottom: 4px; margin-bottom: 6px; }
+.mini .m-side p { font-size: 11px; color: #aeb9c4; line-height: 1.55; }
+.mini .m-side .qtab { font-size: 10.5px; padding: 3px 10px; margin: 0 4px 6px 0; display: inline-block; }
+.mini .m-side .dline { font-size: 10.5px; color: #9aa6b2; padding: 2.5px 0; }
+.mini .m-side .dline .v { color: var(--lime); } .mini .m-side .dline .vx { color: var(--pink); }
+.mini .m-side .dline .id { color: var(--amber); }
+.frame .fcap { margin-top: 14px; font-family: var(--serif); font-size: 15.5px; color: var(--muted); line-height: 1.55; }
+.frame .fcap b { color: var(--text); }
+.strip-hint { font-family: var(--mono); font-size: 12px; color: var(--faint); margin-bottom: 14px; }
+.strip-hint .am { color: var(--amber); }
+/* ============================================================
+   ACT 6 — decisions
+   ============================================================ */
+.dgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 26px; }
+.dcard { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px 26px; display: flex; flex-direction: column; gap: 10px; }
+.dcard .dh { font-size: 18px; font-weight: 700; line-height: 1.3; letter-spacing: -.01em; }
+.dcard .dh .dn { font-family: var(--mono); color: var(--amber); font-size: 13px; margin-right: 8px; }
+.dcard .dwhy { font-family: var(--serif); font-size: 14.5px; color: var(--muted); line-height: 1.55; flex: 1; }
+.dcard .dwhy b { color: #cdd6df; }
+.dcard .dchips { padding-top: 8px; border-top: 1px dashed var(--border-soft); }
+/* ============================================================
+   ACT 7 — build plan
+   ============================================================ */
+.spike-banner {
+  display: grid; grid-template-columns: 200px 1fr 460px; gap: 30px; align-items: center;
+  background: var(--amber-dim); border: 1px solid rgba(210,153,34,.4); border-radius: 12px;
+  padding: 20px 28px; margin-bottom: 34px;
+}
+.spike-banner .sb-k { font-family: var(--mono); color: var(--amber); font-size: 14px; font-weight: 700; letter-spacing: .1em; }
+.spike-banner .sb-t { font-size: 15.5px; color: #e2d9c3; font-family: var(--serif); }
+.spike-banner .sb-gate { font-family: var(--mono); font-size: 12.5px; color: var(--muted); text-align: right; }
+.phases { display: grid; grid-template-columns: 1fr 1.35fr 1fr; gap: 28px; }
+.phase { position: relative; }
+.phase .ph { display: flex; align-items: baseline; gap: 14px; margin-bottom: 6px; }
+.phase .ph .pv { font-family: var(--mono); font-size: 26px; font-weight: 700; color: var(--lime); }
+.phase .ph .pd { font-family: var(--mono); font-size: 13px; color: var(--amber); background: var(--amber-dim); border-radius: 14px; padding: 2px 14px; }
+.phase .ph .strike { text-decoration: line-through; color: var(--faint); background: none; padding: 0; }
+.phase .answers { font-family: var(--mono); font-size: 11.5px; color: var(--muted); margin-bottom: 14px; }
+.phase .answers b { color: var(--lime); font-weight: 600; }
+.phase ul { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+.phase ul li { font-size: 14px; color: #c3ccd6; padding-left: 20px; position: relative; }
+.phase ul li::before { content: "▸"; position: absolute; left: 0; color: var(--amber); font-family: var(--mono); }
+.phase ul li.pipe::before { content: "⚙"; color: var(--violet); }
+.phase ul li.pipe { color: var(--violet); }
+.phase ul li small { color: var(--faint); }
+.phase .pfoot { margin-top: 14px; padding-top: 10px; border-top: 1px dashed var(--border-soft); font-size: 12.5px; color: var(--muted); font-family: var(--mono); }
+.pipe-note { margin-top: 30px; }
+/* ============================================================
+   ACT 8 — critics
+   ============================================================ */
+.crit-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 28px; align-items: stretch; }
+.objection { border-color: rgba(248,81,73,.4); position: relative; }
+.objection .oh { font-family: var(--mono); font-size: 12px; color: var(--red); letter-spacing: .16em; text-transform: uppercase; margin-bottom: 12px; }
+.objection blockquote { font-family: var(--serif); font-size: 21px; font-style: italic; color: #e0d7d5; line-height: 1.5; border-left: 3px solid var(--red); padding-left: 22px; margin-bottom: 20px; }
+.objection .resp-h { font-family: var(--mono); font-size: 12px; color: var(--lime); letter-spacing: .16em; text-transform: uppercase; margin: 18px 0 10px; }
+.finding .fh2 { display: flex; gap: 10px; align-items: baseline; margin-bottom: 10px; }
+.finding .sev { font-family: var(--mono); font-size: 10.5px; padding: 2px 10px; border-radius: 12px; letter-spacing: .08em; }
+.finding .sev.threat { color: var(--red); background: var(--red-dim); border: 1px solid rgba(248,81,73,.4); }
+.finding .sev.mat { color: var(--amber); background: var(--amber-dim); border: 1px solid rgba(210,153,34,.4); }
+.finding h4 { font-size: 17.5px; }
+.finding .was { font-family: var(--serif); font-size: 14.5px; color: var(--muted); margin-bottom: 12px; line-height: 1.5; }
+.finding .fix { font-size: 14px; color: #c3ccd6; border-top: 1px dashed var(--border-soft); padding-top: 10px; }
+.finding .fix b { color: var(--lime); font-family: var(--mono); font-size: 12px; letter-spacing: .1em; display: block; margin-bottom: 5px; }
+.honesty { margin-top: 30px; }
+/* ============================================================
+   ACT 9 — verdict
+   ============================================================ */
+.verdict-strip {
+  display: grid; grid-template-columns: 1.15fr 1.5fr 1fr; gap: 34px;
+  background: linear-gradient(135deg, var(--panel) 0%, #1a2028 100%);
+  border: 1px solid var(--border); border-radius: 16px; padding: 44px 48px;
+}
+.rubric { display: flex; flex-direction: column; gap: 12px; }
+.rub { display: grid; grid-template-columns: 300px 1fr 40px; gap: 18px; align-items: center; }
+.rub .rk { font-size: 14.5px; color: #c3ccd6; }
+.rub .rk small { color: var(--faint); font-family: var(--mono); font-size: 11px; margin-left: 6px; }
+.rub .blocks { display: flex; gap: 5px; }
+.rub .blocks i { flex: 1; height: 15px; border-radius: 3px; background: #21262d; }
+.rub .blocks i.on { background: linear-gradient(90deg, var(--amber), var(--lime)); }
+.rub .rv { font-family: var(--mono); font-size: 16px; font-weight: 700; color: var(--lime); text-align: right; }
+.order { display: flex; flex-direction: column; gap: 12px; }
+.orow { display: grid; grid-template-columns: 60px 1fr; gap: 18px; align-items: center; padding: 14px 20px; border: 1px solid var(--border-soft); border-radius: 10px; }
+.orow .on { font-family: var(--mono); font-size: 20px; font-weight: 700; color: var(--faint); }
+.orow.first { border-color: rgba(126,231,135,.5); background: var(--lime-dim); }
+.orow.first .on { color: var(--lime); }
+.orow .ot b { font-size: 16.5px; display: block; }
+.orow .ot span { font-size: 13px; color: var(--muted); }
+.verdict-say { font-family: var(--serif); font-size: 17px; color: #d5dce4; line-height: 1.62; }
+.verdict-say .big { font-family: var(--grot); font-size: 26px; font-weight: 700; color: var(--text); display: block; margin-bottom: 14px; line-height: 1.3; }
+.verdict-say .big .lime { color: var(--lime); }
+footer.colophon {
+  margin-top: 80px; padding-top: 26px; border-top: 1px solid var(--border-soft);
+  font-family: var(--mono); font-size: 12px; color: var(--faint); display: flex; gap: 30px; flex-wrap: wrap;
+}
+</style>
+</head>
+<body>
+
+<nav id="actnav">
+  <div class="navhead"><span class="dot"></span>drc mission</div>
+  <a href="#hero" class="active"><span class="n">01</span>Hero</a>
+  <a href="#moment"><span class="n">02</span>The moment</a>
+  <a href="#how"><span class="n">03</span>How it works</a>
+  <a href="#mockup"><span class="n">04</span>The cockpit</a>
+  <a href="#filmstrip"><span class="n">05</span>Filmstrip</a>
+  <a href="#decisions"><span class="n">06</span>Design decisions</a>
+  <a href="#plan"><span class="n">07</span>Build plan</a>
+  <a href="#critics"><span class="n">08</span>What critics said</a>
+  <a href="#verdict"><span class="n">09</span>Verdict</a>
+</nav>
+
+<div class="canvas">
+
+<!-- ============================================================ ACT 1 · HERO -->
+<section class="act" id="hero">
+  <div class="hero-grid">
+    <div>
+      <div class="hero-eyebrow">
+        <span class="cmd mono">uv run drc dash</span>
+        <span class="mono">→ localhost:7317/w/&lt;slug&gt;/mission</span>
+        <span class="fam">· pitch 1 of 3 in the drc viz family · mission / atlas / dossier</span>
+      </div>
+      <h1 class="hero-title">drc <span class="amber">mission</span><br>the Run <span class="lime">Cockpit</span></h1>
+      <div class="hero-tag mono">watch the run <span class="sep">·</span> trust the agent <span class="sep">·</span> steer between iterations</div>
+      <p class="prose hero-lede">A drc run is an AI agent marching <strong>20–300 sources</strong> through harvest → scrape → distill → synthesis → ingest for tens of minutes, while you do other work. The cockpit is one live, local screen — plain files in, SSE out — that answers the re-engagement question in a glance: <em>"I've been away. What happened, is anything stuck, where should I steer next?"</em></p>
+      <p class="prose hero-lede">It borrows exactly three production-proven organs — Airflow's dense status matrix, Temporal's "is it wedged?" Now panel, and GitHub Actions' hoisted-error triage funnel <span class="chip">[CS1]</span> — and mounts them over data the pipeline already writes. No database. No build step. One process.</p>
+    </div>
+    <div class="statboard">
+      <div class="stat"><div class="v">&lt;5<span class="u">s</span></div><div class="k">to the "all fine" verdict — glance the Now strip + funnel + error strip and leave</div></div>
+      <div class="stat"><div class="v">0<span class="u">·0·1</span></div><div class="k">zero DB, zero build step, one process — state lives in the workspace + localStorage</div></div>
+      <div class="stat"><div class="v">v0 <span class="u">= 1 day</span></div><div class="k">watcher + events.jsonl + lane funnel + grid + inspector; already answers Q1–Q2</div></div>
+      <div class="stat"><div class="v">134<span class="u"> src</span></div><div class="k">sources legible on one 3840px screen — color as the state channel, no scrolling to know</div></div>
+      <div class="stat wide"><div class="v">2 clicks <span class="u">· ~15 log lines</span></div><div class="k">the full 90-second re-engagement walkthrough: verdict formed, one dead source triaged, one self-healing error correctly ignored <span class="chip">[CS1: walkthrough]</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ ACT 2 · THE MOMENT -->
+<section class="act" id="moment">
+  <div class="act-kicker"><span class="n">act 02</span> · the moment</div>
+  <h2 class="act-title">One human, one agent, tens of minutes of unattended machinery</h2>
+  <p class="act-sub">During a run the <em>agent</em> operates drc; the human tabs in every few minutes. The cockpit optimizes for that re-engagement moment — not for operating controls, not for replacing logs, not for post-hoc analytics.</p>
+
+  <div class="moment-grid">
+    <div class="panel">
+      <h3>Who's watching</h3>
+      <p class="prose" style="font-size:15.5px">One power developer on a <strong>~3800px-wide monitor</strong>, running deep-research and tool-graph flows through an agent. She is the tool's owner, its only user, and its maintainer — so <strong>zero-maintenance beats polish</strong>: the design refuses any component that needs care between runs <span class="chip">[R7: files+SSE stack]</span>.</p>
+      <p class="prose" style="font-size:15.5px; margin-top:12px">Her attention pattern is bursty: 10 seconds of glancing per 5 minutes of absence, with one deliberate <strong>triage sit-down between iterations</strong>. Every design choice below is priced against that budget.</p>
+      <div class="frame-note" style="margin-top:20px">Non-goals, stated up front: not a control panel (the agent drives drc), not a log viewer (raw logs are an escape hatch, not the surface), not retrospective analytics (M7 is honestly cut — the event log accrues the data for a future replay tool).</div>
+    </div>
+
+    <div class="panel">
+      <h3>The five questions, ranked</h3>
+      <ol class="qlist">
+        <li><span class="q">Is the agent working right now, or wedged?</span><span class="why">trust · Now panel</span></li>
+        <li><span class="q">What broke while I was away?</span><span class="why">errors · hoisted strip</span></li>
+        <li class="core"><span class="q">What changed since I last looked?</span><span class="why">delta · violet badges</span></li>
+        <li class="core"><span class="q">Where is coverage thin / which depth flags matter?</span><span class="why">steering · queues</span></li>
+        <li><span class="q">What is the run learning?</span><span class="why">pulse · entities</span></li>
+      </ol>
+      <p style="margin-top:14px; font-size:13.5px; color:var(--muted)">v0 nails Q1–Q2 in a day. v1 answers all five. Green outlines mark the two questions <b style="color:var(--lime)">nothing else in the toolchain can answer at all</b>.</p>
+    </div>
+
+    <div class="panel">
+      <h3>Why the chat transcript can't do this</h3>
+      <table class="vs-table">
+        <thead><tr><th>need</th><th>agent chat next door</th><th>cockpit</th></tr></thead>
+        <tbody>
+          <tr><td>Shape of 134 sources</td><td class="bad">linear prose; you read to reconstruct</td><td class="good">source × stage grid — pattern pop-out <span class="chip">[R1: Airflow grid]</span></td></tr>
+          <tr><td>Delta since you left</td><td class="bad">scroll up and diff by memory</td><td class="good">violet since-you-left dots + count chips, one badge click to clear</td></tr>
+          <tr><td>Triage worklist</td><td class="bad">ad-hoc asks, no state, no undo</td><td class="good">zero-target queues, j/k + verbs, persisted directives <span class="chip">[R6: zero-target queues]</span></td></tr>
+          <tr><td>Is it wedged?</td><td class="bad">silence is ambiguous</td><td class="good">last file event + per-kind stall threshold <span class="chip">[CS1: Temporal]</span></td></tr>
+          <tr><td>Errors while away</td><td class="bad">buried between tool calls</td><td class="good">hoisted, newest-first, deep-linked <span class="chip">[CS1: Actions]</span></td></tr>
+        </tbody>
+      </table>
+      <div class="frame-note">The honest frame <span class="chip">[05-critique: skeptic → MODIFY]</span>: the cockpit's <b>durable core is the grid + queues + since-you-left delta</b> — the three things a linear transcript is structurally bad at. The Now panel and feeds are cheap by-products of the watcher, not the value claim. v0 scopes to exactly the core.</div>
+    </div>
+  </div>
+</section>
+<!-- ============================================================ ACT 3 · HOW IT WORKS -->
+<section class="act" id="how">
+  <div class="act-kicker"><span class="n">act 03</span> · how it works</div>
+  <h2 class="act-title">Three loops on top, one event log underneath</h2>
+  <p class="act-sub">The UI is three attention loops sharing one screen; the plumbing is one watcher minting semantic events from files the pipeline already writes. Nothing else.</p>
+
+  <div class="loops">
+    <div class="panel loop">
+      <span class="loop-n">LOOP 1 · WATCH</span>
+      <h3>Glance and leave <span class="freq">every few minutes · &lt;5s</span></h3>
+      <div class="flow mono">
+        glance <span class="hi">Now panel</span> — latest action + latest log.md line<br>
+        ↳ scan <span class="hi">per-lane funnel</span> — counts-by-state, never %<br>
+        ↳ check <span class="rd">error strip</span> — empty? <span class="hi">leave.</span>
+      </div>
+      <div class="verdict">Stall warnings report the <b>observable, not the diagnosis</b>: "no file activity for 190s" — never "stuck." Threshold scales per last-event-kind (distill default 180s). <span class="chip">[CS1: Temporal]</span></div>
+    </div>
+    <div class="panel loop">
+      <span class="loop-n">LOOP 2 · RE-ENGAGE</span>
+      <h3>The flagship <span class="freq">on tab focus · ~90s</span></h3>
+      <div class="flow mono">
+        tab focus → <span class="vi">since-you-left</span> lights up:<br>
+        <span class="vi">● dots</span> on grid rows · <span class="vi">+6 distilled · 2 errors</span> chips<br>
+        · highlighted away-segment on the sparkline<br>
+        ↳ drill errors → cell → inspector, failing stage <span class="am">auto-expanded</span><br>
+        ↳ click the <span class="vi">badge chip</span> → mark-all-seen, timestamp stored
+      </div>
+      <div class="verdict"><kbd>Esc</kbd> only ever dismisses the topmost pane — mark-seen is an <b>explicit badge click</b>, never a side effect. <span class="chip">[05-critique: Esc overload]</span></div>
+    </div>
+    <div class="panel loop">
+      <span class="loop-n">LOOP 3 · TRIAGE</span>
+      <h3>Steer between iterations <span class="freq">once per iteration · minutes</span></h3>
+      <div class="flow mono">
+        <kbd>t</kbd> → Triage · zero-target queues:<br>
+        Depth ⚑7 · Errors 2 · Unreviewed hi-rel 4<br>
+        <kbd>j</kbd>/<kbd>k</kbd> cursor · verbs auto-advance:<br>
+        <kbd>c</kbd> chase <kbd>x</kbd> dismiss <kbd>r</kbd> retry <kbd>s</kbd> skip <kbd>z</kbd> snooze <kbd>n</kbd> note<br>
+        ↳ every verb <span class="am">appends to viz/directives.jsonl</span><br>
+        ↳ <kbd>Enter</kbd> copies the assembled steering-note block
+      </div>
+      <div class="verdict">Queues derive from <b>sources ⊖ directives</b> — triage work persists across reloads; a last-10-decisions strip gives click-editable undo. <span class="chip">[R6: zero-target queues]</span> <span class="chip">[§6: triage persists]</span></div>
+    </div>
+  </div>
+
+  <div class="arch">
+    <div class="bh" style="margin-bottom:24px">EVENT-LOG ARCHITECTURE <span class="sub">· all pure additions in dr_cognee/dash/ · stack: FastAPI + watchfiles + sse-starlette + htmx(SSE) + Alpine, vendored, no build step <span class="chip">[R7: files+SSE stack]</span></span></div>
+    <div class="arch-flow">
+      <div class="abox">
+        <div class="t amber">workspace/ — the pipeline's own files</div>
+        <ul>
+          <li><b>sources.jsonl</b> — state doc, rewritten (D1)</li>
+          <li><b>distilled/&lt;id&gt;.json</b> — takeaways, entities, claims (D4)</li>
+          <li><b>log.md</b> — agent narrative, appended (D2)</li>
+          <li><b>ingested.json</b> — push manifest = truth (D10)</li>
+          <li><b>synthesis/&lt;facet&gt;.md</b> — rolling synthesis (D6)</li>
+        </ul>
+      </div>
+      <div class="aarrow"><span class="lbl">awatch · viz/ excluded</span>⟶</div>
+      <div class="abox">
+        <div class="t">WorkspaceWatcher</div>
+        <ul>
+          <li>keyed Pydantic snapshots per artifact</li>
+          <li>full reparse on change → <b>id→hash diff</b></li>
+          <li>semantic transitions, not file noise</li>
+          <li>parse-fail / shrunk file → <b>retry, never phantom removals</b></li>
+        </ul>
+      </div>
+      <div class="aarrow"><span class="lbl">append</span>⟶</div>
+      <div class="abox">
+        <div class="t">viz/events.jsonl</div>
+        <ul>
+          <li>{ts, kind, source_id, from, to, detail}</li>
+          <li>minted history — "observed since 14:02"</li>
+          <li>rotates <b>10MB × keep 2</b></li>
+          <li>version field from day one</li>
+        </ul>
+      </div>
+      <div class="aarrow"><span class="lbl">fan-out</span>⟶</div>
+      <div class="abox">
+        <div class="t">SSE /w/{slug}/events</div>
+        <ul>
+          <li>sse-starlette, per-panel topics</li>
+          <li>htmx partial swaps</li>
+          <li>client state = <b>lastSeen</b> in localStorage only</li>
+        </ul>
+      </div>
+      <div class="aarrow"><span class="lbl">render</span>⟶</div>
+      <div class="abox">
+        <div class="t">cockpit panels</div>
+        <ul>
+          <li>Now · funnel lanes · error strip</li>
+          <li>grid · facet rail · inspector</li>
+          <li>queues · entity pulse · log tail</li>
+          <li>inline-SVG sparklines, no chart lib</li>
+        </ul>
+      </div>
+    </div>
+    <div class="arch-notes">
+      <div class="anote good"><b>grid is always correct</b>State-based rendering from sources.jsonl + ingested.json; only deltas/timeline degrade if the watcher wasn't running. UI says "observed since T" instead of pretending.</div>
+      <div class="anote warn"><b>one accepted pipeline change</b><span class="mono" style="color:var(--violet)">SourceStore.update</span> gains atomic tmp-write + rename (~3 lines) so the watcher never reads a torn sources.jsonl. The "pure additions" promise is amended, not silently broken.</div>
+      <div class="anote"><b>the back-channel (v1)</b>Triage verbs append viz/directives.jsonl; the skill tells the agent to read it between iterations. One shared Pydantic model for writer + reader; the design works fully without it — "copy steering note" is the fallback.</div>
+      <div class="anote"><b>Cognee touched once</b>Only /w/{slug}/cognify-status proxies the hosted tenant, polled 15s while ingest is fresh; lazy client, degrades to "not configured", dataset id cached.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ ACT 4 · THE MOCKUP -->
+<section class="act" id="mockup">
+  <div class="act-kicker"><span class="n">act 04</span> · the cockpit</div>
+  <h2 class="act-title">The screen itself — mid-distill, 14:31, two errors while you were away</h2>
+  <p class="act-sub">Workspace <span class="mono" style="color:var(--amber)">agent-memory-architectures</span>, a deep-research run 29 minutes in. Everything below renders from D1/D2/D4/D10 + minted events — this is the v1 surface, drawn at target density for the 3840px monitor.</p>
+
+  <div class="cockpit-wrap">
+  <div class="cockpit">
+    <div class="ck-chrome">
+      <div class="dots"><i></i><i></i><i></i></div>
+      <div class="url">localhost:7317/w/<b>agent-memory-architectures</b>/mission</div>
+      <span class="obs">observed since 14:02 · events.jsonl 1.2MB</span>
+      <span class="seenchip">● since you left: +6 distilled · 2 errors · 3 new — click to mark seen</span>
+      <div class="mode"><span class="on">Watch</span><span>Triage <kbd style="font-size:10px;padding:0 5px">t</kbd></span></div>
+    </div>
+
+    <!-- TOP STRIP -->
+    <div class="ck-top">
+      <div class="ck-now">
+        <div class="nowline"><span class="live">NOW ▶</span> distilling <span class="id">f4b8a2d91c33</span> <b>"Agent memory benchmarks: LoCoMo and beyond"</b> · attempt 1 · 12s <span class="co">1</span></div>
+        <div class="meta"><span class="ok">✓ last file event 12s ago</span><span>stall threshold 180s (distill · 3× median gap this run)</span><span>phase: distill · pass 2 of hi-rel queue</span></div>
+        <div class="logline"><span class="lg">log.md ▸ 14:31</span> scraped 41/46 web sources; starting distill pass 2 on the high-relevance queue — benchmarks facet still thin, queued 2 follow-up queries</div>
+        <div class="spark">
+          <svg width="460" height="34" viewBox="0 0 460 34">
+            <g>
+              <rect x="0"   y="24" width="12" height="10" fill="#30363d"/><rect x="16" y="18" width="12" height="16" fill="#30363d"/><rect x="32" y="10" width="12" height="24" fill="#30363d"/><rect x="48" y="14" width="12" height="20" fill="#30363d"/><rect x="64" y="26" width="12" height="8" fill="#30363d"/><rect x="80" y="20" width="12" height="14" fill="#30363d"/><rect x="96" y="6" width="12" height="28" fill="#30363d"/><rect x="112" y="16" width="12" height="18" fill="#30363d"/><rect x="128" y="22" width="12" height="12" fill="#30363d"/><rect x="144" y="12" width="12" height="22" fill="#30363d"/>
+              <rect x="160" y="2" width="140" height="32" fill="rgba(188,140,255,.12)" rx="4"/>
+              <rect x="164" y="18" width="12" height="16" fill="#bc8cff"/><rect x="180" y="8" width="12" height="26" fill="#bc8cff"/><rect x="196" y="14" width="12" height="20" fill="#bc8cff"/><rect x="212" y="24" width="12" height="10" fill="#bc8cff"/><rect x="228" y="10" width="12" height="24" fill="#bc8cff"/><rect x="244" y="6" width="12" height="28" fill="#bc8cff"/><rect x="260" y="16" width="12" height="18" fill="#bc8cff"/><rect x="276" y="20" width="12" height="14" fill="#bc8cff"/>
+              <rect x="308" y="12" width="12" height="22" fill="#7ee787"/><rect x="324" y="18" width="12" height="16" fill="#7ee787"/><rect x="340" y="8" width="12" height="26" fill="#7ee787"/><rect x="356" y="20" width="12" height="14" fill="#7ee787"><animate attributeName="opacity" values="1;.3;1" dur="1.4s" repeatCount="indefinite"/></rect>
+            </g>
+          </svg>
+          <span class="lbl">file events / min · <span style="color:var(--violet)">▮ away 14:09–14:26</span> · <span style="color:var(--lime)">▮ live</span></span>
+        </div>
+      </div>
+
+      <div class="ck-funnel">
+        <div style="display:flex;justify-content:space-between"><span style="font-size:11px;letter-spacing:.15em;color:var(--muted)">FUNNEL — COUNTS BY STATE, PER LANE · every count filters the grid <span class="co">2</span></span><span style="font-size:11px;color:var(--faint)">no percent bars: harvest keeps growing the denominator [R1 p.8]</span></div>
+        <div class="lane">
+          <span class="lname">web lane <b>web + github · 46</b></span>
+          <div class="fstep">
+            <span class="fcount"><span class="n">46</span><span class="s">found</span></span><span class="farrow">→</span>
+            <span class="fcount"><span class="n">41</span><span class="s">scraped</span></span><span class="farrow">→</span>
+            <span class="fcount hot"><span class="n">29</span><span class="s">distilled</span></span><span class="farrow">→</span>
+            <span class="fcount zero"><span class="n">0</span><span class="s">pushed</span></span>
+          </div>
+          <div class="ftail"><span class="fbadge skip">⊘ 3 skip</span><span class="fbadge err">⛔ 2 errors</span><span class="fbadge retry">↻ 1 retrying</span></div>
+        </div>
+        <div class="lane">
+          <span class="lname">docs lane <b>vendored docs · 88</b></span>
+          <div class="fstep">
+            <span class="fcount"><span class="n">88</span><span class="s">pulled</span></span><span class="farrow">→</span>
+            <span class="fcount zero"><span class="n">0</span><span class="s">pushed</span></span>
+          </div>
+          <div class="ftail" style="border-left:none;padding-left:0"><span style="font-size:11px;color:var(--faint)">docs are born scraped and skip distill — verified in docs_pull.py / ingest.py [§6]</span></div>
+        </div>
+      </div>
+
+      <div class="ck-errs">
+        <div class="ehead">⛔ 2 ERRORS — newest first, click jumps to the cell <span class="co">3</span></div>
+        <div class="erow"><span class="id">e5a1c8b3f906</span><span class="msg">distill: model returned unparseable JSON</span><span class="st8 dead">attempt 3/3 · dead</span></div>
+        <div class="erow"><span class="id">91d2b7e04af5</span><span class="msg">scrape: 403 forbidden (news.ycombinator.com)</span><span class="st8 heal">↻ retrying at 14:32:10</span></div>
+      </div>
+    </div>
+
+    <!-- MAIN BAND -->
+    <div class="ck-main">
+      <!-- facet rail -->
+      <div class="ck-rail">
+        <div class="rgroup">
+          <div class="rh">category <span class="co" style="width:20px;height:20px;font-size:11px">4</span></div>
+          <div class="rrow"><span><span class="band" style="background:#388bfd"></span>web</span><span class="c">34</span></div>
+          <div class="rrow"><span><span class="band" style="background:#8957e5"></span>github</span><span class="c">12</span></div>
+          <div class="rrow"><span><span class="band" style="background:#9e6a03"></span>docs</span><span class="c">88</span></div>
+        </div>
+        <div class="rgroup">
+          <div class="rh">facet</div>
+          <div class="rrow sel"><span>memory-architectures</span><span class="c">12</span></div>
+          <div class="rrow"><span>retrieval</span><span class="c">9</span></div>
+          <div class="rrow"><span>production-reports</span><span class="c">7</span></div>
+          <div class="rrow"><span>consolidation</span><span class="c">5</span></div>
+          <div class="rrow"><span>benchmarks <span class="warn">⚠ thin</span></span><span class="c">3</span></div>
+          <div class="rrow"><span>integrations <span class="warn">⚠ thin</span></span><span class="c">2</span></div>
+          <div class="rrow" style="color:var(--faint);font-size:11px"><span>⚠ → add to steering note</span><span></span></div>
+        </div>
+        <div class="rgroup">
+          <div class="rh">relevance</div>
+          <div class="rrow"><span>high</span><span class="c">14</span></div>
+          <div class="rrow"><span>medium</span><span class="c">21</span></div>
+          <div class="rrow"><span>low</span><span class="c">8</span></div>
+          <div class="rrow"><span>unrated</span><span class="c">91</span></div>
+        </div>
+        <div class="rgroup">
+          <div class="rh">found_via · yield</div>
+          <div class="rrow"><span>"agent memory survey"</span><span class="c">9</span></div>
+          <div class="rrow"><span>"temporal kg memory"</span><span class="c">7</span></div>
+          <div class="rrow"><span>"graphrag production"</span><span class="c">6</span></div>
+          <div class="rrow"><span>llms.txt crawl</span><span class="c">88</span></div>
+        </div>
+      </div>
+
+      <!-- grid -->
+      <div class="ck-grid">
+        <div class="gtoolbar">
+          <span class="fh">filter: <span style="color:var(--amber)">facet=memory-architectures</span> ✕ · sorted newest-first within category bands <span class="co">5</span></span>
+          <span class="kbd-hint">hover a cell → url · found_via · relevance · error · timing</span>
+          <div class="modeswitch"><span class="on">Watch</span><span>Triage</span></div>
+        </div>
+
+        <div class="lane-h web-cols">
+          <span></span><span></span><span class="left lt">WEB LANE <small>found → scraped → distilled → pushed</small></span>
+          <span>F</span><span>S</span><span>D</span><span>P</span><span>rel</span><span>⚑</span><span class="left">title</span><span></span>
+        </div>
+        <div class="grow web-cols sel">
+          <span class="syl on"></span><span class="cat web"></span><span class="sid">7c01ee9adb42</span>
+          <span class="st done">●</span><span class="st done">●</span><span class="st done">●</span><span class="st na">·</span>
+          <span class="rel hi">hi</span><span class="flag">⚑</span><span class="ttl">Zep: temporal knowledge graphs for agent memory in production <span class="dom">· blog.getzep.com</span></span><span class="aux">distilled 14:29</span>
+        </div>
+        <div class="grow web-cols">
+          <span class="syl"></span><span class="cat web"></span><span class="sid">a3f92c1b04de</span>
+          <span class="st done">●</span><span class="st done">●</span><span class="st done">●</span><span class="st na">·</span>
+          <span class="rel hi">hi</span><span class="flag"></span><span class="ttl">MemGPT / Letta: paging long-term memory for LLM agents <span class="dom">· letta.com</span></span><span class="aux">distilled 14:27</span>
+        </div>
+        <div class="grow web-cols">
+          <span class="syl"></span><span class="cat web"></span><span class="sid">f4b8a2d91c33</span>
+          <span class="st done">●</span><span class="st done">●</span><span class="st run">◐</span><span class="st na">·</span>
+          <span class="rel med">med</span><span class="flag"></span><span class="ttl">Agent memory benchmarks: LoCoMo and beyond <span class="dom">· arxiv.org</span></span><span class="aux" style="color:var(--lime)">distilling · 12s</span>
+        </div>
+        <div class="grow web-cols">
+          <span class="syl on"></span><span class="cat web"></span><span class="sid">e5a1c8b3f906</span>
+          <span class="st done">●</span><span class="st done">●</span><span class="st err">⛔</span><span class="st na">·</span>
+          <span class="rel med">med</span><span class="flag"></span><span class="ttl">Blog: our LLM stack after 12 months of agents <span class="dom">· eng.someco.dev</span></span><span class="aux errored">unparseable JSON 3/3</span>
+        </div>
+        <div class="grow web-cols">
+          <span class="syl"></span><span class="cat web"></span><span class="sid">0d9e4f7a21bc</span>
+          <span class="st done">●</span><span class="st done">●</span><span class="st q">◌</span><span class="st na">·</span>
+          <span class="rel med">med</span><span class="flag">⚑</span><span class="ttl">Graphiti incremental KG updates — engineering deep-dive <span class="dom">· blog.getzep.com</span></span><span class="aux">queued</span>
+        </div>
+        <div class="grow web-cols">
+          <span class="syl on"></span><span class="cat web"></span><span class="sid">91d2b7e04af5</span>
+          <span class="st done">●</span><span class="st err">⛔</span><span class="st na">·</span><span class="st na">·</span>
+          <span class="rel lo">—</span><span class="flag"></span><span class="ttl">HN thread: has anyone shipped GraphRAG at scale? <span class="dom">· news.ycombinator.com</span></span><span class="aux errored">403 forbidden</span>
+        </div>
+        <div class="grow web-cols">
+          <span class="syl"></span><span class="cat web"></span><span class="sid">3b6fc09d8e12</span>
+          <span class="st done">●</span><span class="st retry">↻</span><span class="st na">·</span><span class="st na">·</span>
+          <span class="rel med">med</span><span class="flag"></span><span class="ttl">arXiv: HippoRAG — neurobiologically inspired retrieval <span class="dom">· arxiv.org</span></span><span class="aux retrying">429 · retry 14:32:10</span>
+        </div>
+        <div class="grow web-cols">
+          <span class="syl"></span><span class="cat web"></span><span class="sid">c8e2a94b1d70</span>
+          <span class="st done">●</span><span class="st done">●</span><span class="st done">●</span><span class="st na">·</span>
+          <span class="rel hi">hi</span><span class="flag"></span><span class="ttl">Mem0 architecture notes: extraction + consolidation pipeline <span class="dom">· mem0.ai</span></span><span class="aux">distilled 14:18</span>
+        </div>
+        <div class="grow web-cols">
+          <span class="syl on"></span><span class="cat web"></span><span class="sid">5f7d3e8a90cb</span>
+          <span class="st done">●</span><span class="st done">●</span><span class="st done">●</span><span class="st na">·</span>
+          <span class="rel med">med</span><span class="flag"></span><span class="ttl">Letta blog: sleep-time compute for memory consolidation <span class="dom">· letta.com</span></span><span class="aux">distilled 14:24</span>
+        </div>
+        <div class="grow web-cols">
+          <span class="syl"></span><span class="cat web"></span><span class="sid">b2a4d6c8e0f1</span>
+          <span class="st done">●</span><span class="st skip">⊘</span><span class="st na">·</span><span class="st na">·</span>
+          <span class="rel lo">low</span><span class="flag"></span><span class="ttl">Reddit r/LocalLLaMA: KG memory vs vector memory shootout <span class="dom">· reddit.com</span></span><span class="aux" style="color:var(--pink)">skip: low signal</span>
+        </div>
+        <div class="grow web-cols">
+          <span class="syl"></span><span class="cat gh"></span><span class="sid">48ac13579bdf</span>
+          <span class="st done">●</span><span class="st done">●</span><span class="st q">◌</span><span class="st na">·</span>
+          <span class="rel hi">hi</span><span class="flag">⚑</span><span class="ttl">arXiv: a survey of memory mechanisms for LLM-based agents <span class="dom">· arxiv.org</span></span><span class="aux">queued</span>
+        </div>
+        <div class="grow web-cols">
+          <span class="syl"></span><span class="cat gh"></span><span class="sid">d7e9f1a3b5c2</span>
+          <span class="st done">●</span><span class="st q">◌</span><span class="st na">·</span><span class="st na">·</span>
+          <span class="rel lo">—</span><span class="flag"></span><span class="ttl">letta-ai/letta issue #2214: memory block eviction policy <span class="dom">· github.com</span></span><span class="aux">queued</span>
+        </div>
+        <div class="grow web-cols">
+          <span class="syl"></span><span class="cat gh"></span><span class="sid">6a5b4c3d2e1f</span>
+          <span class="st done">●</span><span class="st done">●</span><span class="st done">●</span><span class="st na">·</span>
+          <span class="rel med">med</span><span class="flag"></span><span class="ttl">getzep/graphiti README + architecture docs <span class="dom">· github.com</span></span><span class="aux">distilled 14:11</span>
+        </div>
+        <div class="grow web-cols more">
+          <span></span><span></span><span class="sid"></span><span></span><span></span><span></span><span></span><span></span><span></span><span class="ttl">… 33 more web/github sources — scroll or click a funnel count to filter</span><span></span>
+        </div>
+
+        <div class="lane-h docs-cols">
+          <span></span><span></span><span class="left lt">DOCS LANE <small>pulled → pushed · born scraped, no distill</small></span>
+          <span>PULL</span><span>PUSH <span class="co" style="width:18px;height:18px;font-size:10px;margin-left:4px">6</span></span><span>rel</span><span>⚑</span><span class="left">page</span><span></span>
+        </div>
+        <div class="grow docs-cols">
+          <span class="syl"></span><span class="cat docs"></span><span class="sid">09c3e7f1b5d8</span>
+          <span class="st done">●</span><span class="st na">·</span>
+          <span class="rel med">—</span><span class="flag"></span><span class="ttl">Cognee docs: node sets &amp; ontology-lite <span class="dom">· docs.cognee.ai · via llms.txt</span></span><span class="aux">pulled 14:05</span>
+        </div>
+        <div class="grow docs-cols">
+          <span class="syl"></span><span class="cat docs"></span><span class="sid">4e8b2f6c0a19</span>
+          <span class="st done">●</span><span class="st na">·</span>
+          <span class="rel med">—</span><span class="flag"></span><span class="ttl">Letta docs: memory blocks API reference <span class="dom">· docs.letta.com</span></span><span class="aux">pulled 14:05</span>
+        </div>
+        <div class="grow docs-cols">
+          <span class="syl on"></span><span class="cat docs"></span><span class="sid">ab34cd56ef78</span>
+          <span class="st done">●</span><span class="st na">·</span>
+          <span class="rel med">—</span><span class="flag"></span><span class="ttl">Zep docs: graph API — episodes &amp; facts <span class="dom">· help.getzep.com</span></span><span class="aux">pulled 14:06</span>
+        </div>
+        <div class="grow docs-cols more">
+          <span></span><span></span><span class="sid"></span><span></span><span></span><span></span><span></span><span class="ttl">… 85 more docs pages (collapsed — docs lane folds by default while healthy)</span><span></span>
+        </div>
+
+        <div class="legend-inline">
+          <span><b><span class="st done" style="width:auto">●</span> done</b></span>
+          <span><b><span class="st run" style="width:auto">◐</span> running (pulsing)</b></span>
+          <span><b><span class="st q" style="width:auto">◌</span> queued</b></span>
+          <span><b><span class="st na" style="width:auto">·</span> not yet</b></span>
+          <span><b><span class="st skip" style="width:auto">⊘</span> skip</b></span>
+          <span><b><span class="st err" style="width:auto">⛔</span> error</b></span>
+          <span><b><span class="st retry" style="width:auto">↻</span> retry</b></span>
+          <span><b><span class="st dis" style="width:auto">◪</span> status ≠ manifest</b></span>
+          <span><b><span class="syl on" style="display:inline-block"></span> since you left</b></span>
+          <span style="margin-left:auto">last column <b style="color:var(--text)">pushed</b> derives from ingested.json keys, not source status [§6]</span>
+        </div>
+
+        <div class="qstrip">
+          <span style="font-size:11px;color:var(--muted);letter-spacing:.12em">QUEUES</span>
+          <span class="qtab on">Depth flags <b>7</b> <span class="pl">+2</span></span>
+          <span class="qtab">Errors <b>2</b></span>
+          <span class="qtab">Unreviewed hi-rel <b>4</b> <span class="pl">+3</span></span>
+          <span class="co" style="width:20px;height:20px;font-size:11px">8</span>
+          <span style="font-size:11px;color:var(--faint)">source-shaped only — thin facets live in the rail [§6]</span>
+          <div class="verbstrip">last 10: <i>c</i><i>c</i><i class="x">x</i><i class="z">z</i><i>c</i><i class="r">r</i><i class="x">x</i><i>c</i><i class="x">s</i><i>c</i> <span>click to undo · all persisted to directives.jsonl</span></div>
+        </div>
+      </div>
+
+      <!-- inspector -->
+      <div class="ck-insp">
+        <div class="bh">INSPECTOR — DISTILLED RECORD, NEVER RAW JSON <span class="co" style="width:20px;height:20px;font-size:11px">7</span></div>
+        <div class="ih"><span class="id">7c01ee9adb42</span><span class="badge">practitioner</span><span class="badge cat">web · blog</span><span class="badge" style="border-color:rgba(210,153,34,.4);color:var(--amber);background:var(--amber-dim)">rel: high · ⚑ depth</span></div>
+        <div class="ititle">Zep: temporal knowledge graphs for agent memory in production</div>
+        <div class="iurl">https://blog.getzep.com/temporal-knowledge-graphs-agent-memory · found_via "temporal kg memory" · scraped 14:12 · distilled 14:29</div>
+        <div class="isec">
+          <div class="sh">takeaways <span>5</span></div>
+          <ul>
+            <li>Replaced bespoke summarization memory with a temporal KG; retrieval latency p95 dropped from 1.9s to 300ms at ~10k episodes per user.</li>
+            <li>Bi-temporal edges (event time vs ingestion time) let the graph invalidate stale facts without deleting them — key for contradiction handling.</li>
+            <li>Entity resolution is the operational cost center: ~40% of pipeline compute goes to dedupe + linking, not extraction.</li>
+            <li>Graph-native recall beat vector-only recall on their internal multi-session eval by 18 points; hybrid still wins overall.</li>
+            <li>Recommends nightly consolidation jobs over inline consolidation — mirrors the sleep-time compute framing in the Letta post.</li>
+          </ul>
+        </div>
+        <div class="isec">
+          <div class="sh">entities <span>9</span></div>
+          <div class="echips">
+            <span class="echip">Zep</span><span class="echip">Graphiti</span><span class="echip new">temporal KG</span><span class="echip">entity resolution</span><span class="echip new">bi-temporal edges</span><span class="echip">episodic memory</span><span class="echip">consolidation</span><span class="echip">hybrid retrieval</span><span class="echip">LoCoMo</span>
+          </div>
+        </div>
+        <div class="isec">
+          <div class="sh">claims_of_use <span>2</span></div>
+          <div class="claim">"We run this in production for every agent session across ~2,000 tenants; the graph is the memory, there is no fallback store."<span class="who">— Zep engineering, first-party production claim</span></div>
+          <div class="claim">"A design partner replaced their LangChain summary-buffer memory with Graphiti in two weeks."<span class="who">— secondhand, vendor-reported</span></div>
+        </div>
+        <div class="isec">
+          <div class="sh">error / raw log</div>
+          <div class="iacc"><div class="ah"><span>raw scrape excerpt (content/7c01ee9adb42.md · 41KB)</span><span class="car">▸ lazy-loads on expand</span></div></div>
+          <div class="iacc"><div class="ah"><span>stage log — auto-expands only when entered via the error strip</span><span class="car">▸</span></div></div>
+        </div>
+        <div class="ifoot"><span>sources.jsonl rev 14:29:41</span><span>content sha 9f2e…c41a</span><span>in ingested.json: no (pre-push)</span><span>directives: none</span></div>
+      </div>
+    </div>
+
+    <!-- BOTTOM BAND -->
+    <div class="ck-bottom">
+      <div class="ck-log">
+        <div class="bh">LOG NARRATIVE — log.md tail, rendered markdown · the agent's own voice <span class="co" style="width:20px;height:20px;font-size:11px">9</span></div>
+        <div class="logrow newest"><span class="t">14:31</span><span class="m">Scraped 41/46 web sources; starting distill pass 2 on the high-relevance queue — <code>benchmarks</code> facet still thin, queued 2 follow-up queries for next iteration.</span></div>
+        <div class="logrow"><span class="t">14:29</span><span class="m">Distilled <code>7c01ee9adb42</code> (Zep temporal KG) — strongest production evidence so far; flagged for depth chase on the entity-resolution cost claim.</span></div>
+        <div class="logrow"><span class="t">14:22</span><span class="m">Skipping <code>b2a4d6c8e0f1</code> (Reddit shootout thread): anecdotal, no first-party claims, low relevance.</span></div>
+        <div class="logrow"><span class="t">14:14</span><span class="m">Harvest round 2 complete: +12 sources from <code>"graphrag production"</code>; dupes filtered by normalized URL, 3 dropped.</span></div>
+        <div class="logrow"><span class="t">14:05</span><span class="m">Pulled 88 vendored docs pages across Cognee / Letta / Zep llms.txt mirrors; docs lane ready for ingest.</span></div>
+      </div>
+      <div class="ck-pulse">
+        <div class="bh">ENTITY PULSE — recurring entities across distilled records · bar = source count <span class="sub"><b style="color:var(--violet)">bold violet = first seen since you left</b> · click filters the grid · D5, the pre-cognify preview</span> <span class="co" style="width:20px;height:20px;font-size:11px">10</span></div>
+        <div class="prow"><span class="en">temporal knowledge graph</span><span class="bar" style="width:100%"></span><span class="n">11</span></div>
+        <div class="prow"><span class="en">Zep / Graphiti</span><span class="bar" style="width:82%"></span><span class="n">9</span></div>
+        <div class="prow"><span class="en new">memory consolidation</span><span class="bar" style="width:73%"></span><span class="n">8</span></div>
+        <div class="prow"><span class="en">GraphRAG</span><span class="bar" style="width:64%"></span><span class="n">7</span></div>
+        <div class="prow"><span class="en new">episodic vs semantic memory</span><span class="bar" style="width:55%"></span><span class="n">6</span></div>
+        <div class="prow"><span class="en">entity resolution</span><span class="bar" style="width:45%"></span><span class="n">5</span></div>
+        <div class="prow"><span class="en new">sleep-time compute</span><span class="bar" style="width:36%"></span><span class="n">4</span></div>
+        <div class="prow"><span class="en">HippoRAG</span><span class="bar" style="width:27%"></span><span class="n">3</span></div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="callout-legend">
+    <div class="cl-item"><span class="co">1</span><div><b>Now panel</b>Current action inferred from the latest minted event, elapsed time, per-kind stall threshold, and the latest log.md line hoisted inline — the trust channel up top. <span class="chip">[CS1: Temporal Pending Activities]</span> <span class="chip">[§6]</span></div></div>
+    <div class="cl-item"><span class="co">2</span><div><b>Per-lane funnel</b>Counts-by-state per category lane; docs lane is pulled→pushed because docs are born scraped. Every count click-filters the grid. Skips and errors never fold into "done." <span class="chip">[R1: pattern 8]</span></div></div>
+    <div class="cl-item"><span class="co">3</span><div><b>Hoisted error strip</b>Errors surface at the top, newest first, distinguishing dead (attempt 3/3) from self-healing (retrying at T); each deep-links to its grid cell. <span class="chip">[CS1: Actions annotations]</span></div></div>
+    <div class="cl-item"><span class="co">4</span><div><b>Facet rail</b>Flamenco-style query previews: every count is a filter, no zero-result clicks. ⚠ thin facets carry one action — add to steering note — and stay out of the queues. <span class="chip">[R6]</span> <span class="chip">[§6]</span></div></div>
+    <div class="cl-item"><span class="co">5</span><div><b>Source × stage grid</b>Rows = sources, columns = stages, color = state. Category bands make "all the reds are blogs" readable as a shape; horizontal vs vertical red patterns are diagnostic before reading a word. <span class="chip">[R1: Airflow grid]</span> <span class="chip">[CS1]</span></div></div>
+    <div class="cl-item"><span class="co">6</span><div><b>Pushed column</b>Derived from ingested.json keys — the manifest, not the status field. If they disagree, the cell shows ◪ status-vs-manifest, a distinct state, never hidden. <span class="chip">[§6]</span></div></div>
+    <div class="cl-item"><span class="co">7</span><div><b>Inspector</b>Renders the DistilledRecord as formatted content — takeaways, entity chips, claims_of_use called out with attribution — never raw JSON. Raw log is a lazy accordion at the bottom.</div></div>
+    <div class="cl-item"><span class="co">8</span><div><b>Queue tabs + verb strip</b>Zero-target queues, source-shaped only. j/k cursor, verbs auto-advance, every decision appended to viz/directives.jsonl; the last-10 strip is click-editable undo. <span class="chip">[R6: zero-target queues]</span></div></div>
+    <div class="cl-item"><span class="co">9</span><div><b>Log narrative</b>Rendered markdown tail of log.md — the agent's reasoning in its own words, kept at full width because trust is a first-class output of this screen.</div></div>
+    <div class="cl-item"><span class="co">10</span><div><b>Entity pulse</b>Top recurring entities across distilled/*.json — the "what is it learning" answer, and the seed of the atlas's pre-cognify preview layer (D5). New-since-last-visit entities in violet.</div></div>
+    <div class="cl-item"><span class="co" style="background:var(--violet)">＋</span><div><b>Since-you-left system</b>Violet dots on rows, +N chips on queues, the highlighted away-segment on the sparkline. Cleared only by the explicit badge-chip click; localStorage stores lastSeen.</div></div>
+    <div class="cl-item"><span class="co" style="background:var(--lime)">⎋</span><div><b>One keymap</b><kbd>t</kbd> Watch⇄Triage · <kbd>j</kbd>/<kbd>k</kbd> row cursor · <kbd>c x r s z n</kbd> verbs · <kbd>Esc</kbd> dismiss topmost pane, everywhere, always. <span class="chip">[05-critique: shared keymap]</span></div></div>
+  </div>
+</section>
+<!-- ============================================================ ACT 5 · FILMSTRIP -->
+<section class="act" id="filmstrip">
+  <div class="act-kicker"><span class="n">act 05</span> · filmstrip</div>
+  <h2 class="act-title">One run, four moments — scroll right →</h2>
+  <p class="act-sub">The same screen through a run's life. The layout never changes; only the data and your questions do. That stability is the design — you learn where to look once.</p>
+  <div class="strip-hint mono"><span class="am">⟷ horizontal strip</span> · shift-scroll or drag the bar · 4 frames × 1560px</div>
+
+  <div class="filmstrip-outer">
+  <div class="filmstrip">
+
+    <!-- FRAME 1: MID-HARVEST -->
+    <div class="frame">
+      <div class="fhead"><span class="fn">FRAME 1 / 4</span><h3>Mid-harvest — the fan-out</h3><span class="ft">14:07 · 5 min in · Q1: is it working?</span></div>
+      <div class="mini">
+        <div class="m-top">
+          <div class="m-now">
+            <div class="l1"><span class="live">NOW ▶</span> harvesting · query 2/6 <b>"temporal kg memory"</b> · 8 new</div>
+            <div class="l2">log ▸ round 1: 18 candidates from "agent memory survey", 3 dupes dropped · last event 2s ago</div>
+          </div>
+          <div class="m-fun">
+            <div class="mlane"><span class="ln">web</span><b class="hot">18</b> found <span class="fa">→</span> <b>4</b> scraped <span class="fa">→</span> <b>0</b> distilled <span class="fa">→</span> <b>0</b> pushed</div>
+            <div class="mlane"><span class="ln">docs</span><b>88</b> pulled <span class="fa">→</span> <b>0</b> pushed <span style="color:#3fb950;margin-left:12px">✓ no errors</span></div>
+          </div>
+        </div>
+        <div class="m-body">
+          <div class="m-grid">
+            <div class="mlaneh">WEB LANE <small>growing — counts, never percent: the denominator is still moving</small></div>
+            <div class="mrow"><span class="syl"></span><span class="sid">7c01ee9adb42</span><span class="st done">●</span><span class="st run">◐</span><span class="st na">·</span><span class="st na">·</span><span class="ttl">Zep: temporal knowledge graphs for agent memory…</span></div>
+            <div class="mrow"><span class="syl"></span><span class="sid">a3f92c1b04de</span><span class="st done">●</span><span class="st done">●</span><span class="st na">·</span><span class="st na">·</span><span class="ttl">MemGPT / Letta: paging long-term memory for LLM agents</span></div>
+            <div class="mrow"><span class="syl"></span><span class="sid">c8e2a94b1d70</span><span class="st done">●</span><span class="st q">◌</span><span class="st na">·</span><span class="st na">·</span><span class="ttl">Mem0 architecture notes: extraction + consolidation</span></div>
+            <div class="mrow"><span class="syl"></span><span class="sid">3b6fc09d8e12</span><span class="st done">●</span><span class="st q">◌</span><span class="st na">·</span><span class="st na">·</span><span class="ttl">arXiv: HippoRAG — neurobiologically inspired retrieval</span></div>
+            <div class="mrow"><span class="syl"></span><span class="sid">0d9e4f7a21bc</span><span class="st done">●</span><span class="st q">◌</span><span class="st na">·</span><span class="st na">·</span><span class="ttl">Graphiti incremental KG updates — engineering deep-dive</span></div>
+            <div class="mrow"><span class="syl"></span><span class="sid">91d2b7e04af5</span><span class="st done">●</span><span class="st q">◌</span><span class="st na">·</span><span class="st na">·</span><span class="ttl">HN thread: has anyone shipped GraphRAG at scale?</span></div>
+            <div class="mrow" style="border-bottom:none"><span class="syl"></span><span class="sid" style="color:#545d68">+ 12 more</span><span class="st q">◌</span><span class="st na">·</span><span class="st na">·</span><span class="st na">·</span><span class="ttl" style="color:#545d68">arriving as harvest fans out…</span></div>
+          </div>
+          <div class="m-side">
+            <div class="sh">found_via · yield so far</div>
+            <div class="dline">"agent memory survey" <span class="v">9</span> · "temporal kg memory" <span class="v">8</span> · 4 queries pending</div>
+            <div class="sh" style="margin-top:10px">entity pulse</div>
+            <p style="color:#545d68">— quiet until distill starts. The rail already answers "is coverage broad?" from found_via yields.</p>
+          </div>
+        </div>
+      </div>
+      <p class="fcap"><b>What you check:</b> the found count climbing, dupes being dropped, query yields in the rail. The grid is mostly hollow circles — and that's fine, because <b>counts-by-state never lie about progress the way a percent bar would</b> while the denominator grows.</p>
+    </div>
+
+    <!-- FRAME 2: MID-DISTILL -->
+    <div class="frame">
+      <div class="fhead"><span class="fn">FRAME 2 / 4</span><h3>Mid-distill — the crawling cursor</h3><span class="ft">14:31 · the centerpiece moment · Q1+Q5</span></div>
+      <div class="mini">
+        <div class="m-top">
+          <div class="m-now">
+            <div class="l1"><span class="live">NOW ▶</span> distilling <b>f4b8a2d91c33</b> "Agent memory benchmarks…" · 12s</div>
+            <div class="l2">log ▸ distill pass 2 on hi-rel queue · benchmarks facet thin · last event 12s / 180s threshold</div>
+          </div>
+          <div class="m-fun">
+            <div class="mlane"><span class="ln">web</span><b>46</b> found <span class="fa">→</span> <b>41</b> scraped <span class="fa">→</span> <b class="hot">29</b> distilled <span class="fa">→</span> <b>0</b> pushed <span class="mb err">⛔ 2</span> <span class="mb skip">⊘ 3</span></div>
+            <div class="mlane"><span class="ln">docs</span><b>88</b> pulled <span class="fa">→</span> <b>0</b> pushed</div>
+          </div>
+        </div>
+        <div class="m-body">
+          <div class="m-grid">
+            <div class="mlaneh">WEB LANE <small>the lime cell crawls downward — the agent's live cursor</small></div>
+            <div class="mrow"><span class="syl on"></span><span class="sid">7c01ee9adb42</span><span class="st done">●</span><span class="st done">●</span><span class="st done">●</span><span class="st na">·</span><span class="ttl">Zep: temporal knowledge graphs for agent memory…</span></div>
+            <div class="mrow"><span class="syl"></span><span class="sid">a3f92c1b04de</span><span class="st done">●</span><span class="st done">●</span><span class="st done">●</span><span class="st na">·</span><span class="ttl">MemGPT / Letta: paging long-term memory…</span></div>
+            <div class="mrow"><span class="syl"></span><span class="sid">f4b8a2d91c33</span><span class="st done">●</span><span class="st done">●</span><span class="st run">◐</span><span class="st na">·</span><span class="ttl">Agent memory benchmarks: LoCoMo and beyond</span></div>
+            <div class="mrow"><span class="syl on"></span><span class="sid">e5a1c8b3f906</span><span class="st done">●</span><span class="st done">●</span><span class="st err">⛔</span><span class="st na">·</span><span class="ttl">Blog: our LLM stack after 12 months of agents</span></div>
+            <div class="mrow"><span class="syl on"></span><span class="sid">91d2b7e04af5</span><span class="st done">●</span><span class="st err">⛔</span><span class="st na">·</span><span class="st na">·</span><span class="ttl">HN thread: has anyone shipped GraphRAG at scale?</span></div>
+            <div class="mrow"><span class="syl"></span><span class="sid">3b6fc09d8e12</span><span class="st done">●</span><span class="st retry">↻</span><span class="st na">·</span><span class="st na">·</span><span class="ttl">arXiv: HippoRAG — 429, retrying at 14:32:10</span></div>
+            <div class="mrow" style="border-bottom:none"><span class="syl"></span><span class="sid">0d9e4f7a21bc</span><span class="st done">●</span><span class="st done">●</span><span class="st q">◌</span><span class="st na">·</span><span class="ttl">Graphiti incremental KG updates…</span></div>
+          </div>
+          <div class="m-side">
+            <div class="sh">entity pulse — waking up</div>
+            <div class="dline">temporal KG <span class="v">▮▮▮▮▮▮▮▮</span> 11</div>
+            <div class="dline">Zep / Graphiti <span class="v">▮▮▮▮▮▮</span> 9</div>
+            <div class="dline" style="color:var(--violet)">consolidation ● <span class="v">▮▮▮▮▮</span> 8</div>
+            <div class="dline">GraphRAG <span class="v">▮▮▮▮</span> 7</div>
+            <div class="dline" style="color:var(--violet)">episodic memory ● <span class="v">▮▮▮</span> 6</div>
+          </div>
+        </div>
+      </div>
+      <p class="fcap"><b>What you check:</b> the lime cursor is moving (not wedged), two reds are both in the distill column and both blogs — <b>horizontal pattern: source-specific, not systemic</b>. Entity pulse says the run is converging on temporal KGs + consolidation. Verdict in seconds.</p>
+    </div>
+
+    <!-- FRAME 3: ERROR TRIAGE -->
+    <div class="frame">
+      <div class="fhead"><span class="fn">FRAME 3 / 4</span><h3>Triage — between iterations</h3><span class="ft">15:12 · agent paused · Q2+Q4: steer</span></div>
+      <div class="mini">
+        <div class="m-top">
+          <div class="m-now">
+            <div class="l1"><span class="idle">IDLE ▪</span> agent between iterations · last event 6m ago <b style="color:var(--amber)">· TRIAGE MODE</b></div>
+            <div class="l2">log ▸ iteration 2 complete: 38 distilled, synthesis updated for 4/6 facets · awaiting steer</div>
+          </div>
+          <div class="m-fun">
+            <div class="mlane"><span class="ln">web</span><b>52</b> found <span class="fa">→</span> <b>47</b> scraped <span class="fa">→</span> <b>38</b> distilled <span class="fa">→</span> <b>0</b> pushed <span class="mb err">⛔ 2</span> <span class="mb skip">⊘ 4</span></div>
+            <div class="mlane"><span class="ln">docs</span><b>88</b> pulled <span class="fa">→</span> <b>0</b> pushed</div>
+          </div>
+        </div>
+        <div class="m-body">
+          <div class="m-grid">
+            <div class="mlaneh" style="color:var(--lime)">QUEUE: DEPTH FLAGS <small>j/k moves · verbs act + auto-advance · cursor row highlighted</small></div>
+            <div class="mrow" style="background:var(--amber-dim);outline:1px solid rgba(210,153,34,.5);border-radius:4px"><span class="syl"></span><span class="sid">7c01ee9adb42</span><span class="st done" style="grid-column:3/7;justify-content:flex-start;font-size:10px;color:var(--amber)">⚑ entity-resolution cost claim — chase?</span><span class="ttl">Zep temporal KG <b style="color:var(--lime)">← cursor · press c</b></span></div>
+            <div class="mrow"><span class="syl"></span><span class="sid">48ac13579bdf</span><span class="st done" style="grid-column:3/7;justify-content:flex-start;font-size:10px;color:var(--amber)">⚑ survey cites 3 uncrawled benchmarks</span><span class="ttl">arXiv memory-mechanisms survey</span></div>
+            <div class="mrow"><span class="syl"></span><span class="sid">0d9e4f7a21bc</span><span class="st done" style="grid-column:3/7;justify-content:flex-start;font-size:10px;color:var(--amber)">⚑ incremental-update benchmark referenced</span><span class="ttl">Graphiti deep-dive</span></div>
+            <div class="mrow"><span class="syl"></span><span class="sid">5f7d3e8a90cb</span><span class="st done" style="grid-column:3/7;justify-content:flex-start;font-size:10px;color:#545d68">✓ dismissed 15:09 (undo)</span><span class="ttl" style="color:#545d68">Letta sleep-time compute</span></div>
+            <div class="mlaneh" style="margin-top:6px">STEERING NOTE — composes as you triage · Enter copies</div>
+            <div class="mrow" style="grid-template-columns:1fr;border-bottom:none;height:auto;padding:6px 0"><span class="ttl" style="white-space:normal;font-size:10.5px;color:#9aa6b2">## steer · iteration 3<br>- chase: 7c01ee9adb42 entity-resolution cost — find independent numbers<br>- chase: 48ac13579bdf → crawl the 3 cited benchmarks<br>- facet thin: benchmarks (3), integrations (2) — add targeted queries<br>- retry: 91d2b7e04af5 via cache mirror</span></div>
+          </div>
+          <div class="m-side">
+            <div class="sh">queues (sources ⊖ directives)</div>
+            <div><span class="qtab on">Depth ⚑ <b>3</b></span><span class="qtab">Err <b>2</b></span><span class="qtab">HiRel <b>1</b></span></div>
+            <div class="sh" style="margin-top:10px">viz/directives.jsonl · 9 records</div>
+            <div class="dline"><span class="v">chase</span> <span class="id">7c01ee9adb42</span> "independent ER cost numbers"</div>
+            <div class="dline"><span class="vx">dismiss</span> <span class="id">5f7d3e8a90cb</span> depth flag</div>
+            <div class="dline"><span class="v">retry</span> <span class="id">91d2b7e04af5</span> via mirror</div>
+            <div class="dline"><span class="vx">skip</span> <span class="id">b2a4d6c8e0f1</span> low signal</div>
+            <div class="dline" style="color:#545d68">…agent reads these between iterations [v1]</div>
+          </div>
+        </div>
+      </div>
+      <p class="fcap"><b>What you do:</b> sit down once, <kbd>t</kbd> into Triage, ride <kbd>j</kbd>/<kbd>k</kbd> through three queues, and every verb <b>persists as a directive record</b> — dismissals included. The steering note assembles itself; one <kbd>Enter</kbd> and the agent's next iteration is steered.</p>
+    </div>
+
+    <!-- FRAME 4: POST-INGEST -->
+    <div class="frame">
+      <div class="fhead"><span class="fn">FRAME 4 / 4</span><h3>Post-ingest — manifest truth</h3><span class="ft">15:48 · cognify running · Q2: what really went in?</span></div>
+      <div class="mini">
+        <div class="m-top">
+          <div class="m-now">
+            <div class="l1"><span class="live">NOW ▶</span> cognify · <b>DATASET_PROCESSING_STARTED</b> · polled 15s ago</div>
+            <div class="l2">log ▸ pushed 36 web + 88 docs to dataset agent-memory-architectures · cognify launched 15:44</div>
+          </div>
+          <div class="m-fun">
+            <div class="mlane"><span class="ln">web</span><b>52</b> found <span class="fa">→</span> <b>47</b> scraped <span class="fa">→</span> <b>40</b> distilled <span class="fa">→</span> <b class="hot">36</b> pushed <span class="mb err" style="color:var(--amber);border-color:rgba(210,153,34,.5)">◪ 1 status≠manifest</span></div>
+            <div class="mlane"><span class="ln">docs</span><b>88</b> pulled <span class="fa">→</span> <b class="hot">88</b> pushed <span style="color:#3fb950;margin-left:12px">✓ complete</span></div>
+          </div>
+        </div>
+        <div class="m-body">
+          <div class="m-grid">
+            <div class="mlaneh">WEB LANE <small>pushed column filled from ingested.json keys — not from source status</small></div>
+            <div class="mrow"><span class="syl"></span><span class="sid">7c01ee9adb42</span><span class="st done">●</span><span class="st done">●</span><span class="st done">●</span><span class="st done">●</span><span class="ttl">Zep: temporal knowledge graphs…</span></div>
+            <div class="mrow"><span class="syl"></span><span class="sid">a3f92c1b04de</span><span class="st done">●</span><span class="st done">●</span><span class="st done">●</span><span class="st done">●</span><span class="ttl">MemGPT / Letta: paging long-term memory…</span></div>
+            <div class="mrow" style="background:var(--amber-dim);outline:1px solid rgba(210,153,34,.45);border-radius:4px"><span class="syl on"></span><span class="sid">c8e2a94b1d70</span><span class="st done">●</span><span class="st done">●</span><span class="st done">●</span><span class="st dis">◪</span><span class="ttl">Mem0 architecture notes — <b style="color:var(--amber)">status says ingested; missing from ingested.json</b></span></div>
+            <div class="mrow"><span class="syl"></span><span class="sid">f4b8a2d91c33</span><span class="st done">●</span><span class="st done">●</span><span class="st done">●</span><span class="st done">●</span><span class="ttl">Agent memory benchmarks: LoCoMo and beyond</span></div>
+            <div class="mrow"><span class="syl"></span><span class="sid">6a5b4c3d2e1f</span><span class="st done">●</span><span class="st done">●</span><span class="st done">●</span><span class="st done">●</span><span class="ttl">getzep/graphiti README + architecture docs</span></div>
+            <div class="mlaneh">DOCS LANE</div>
+            <div class="mrow d2" style="border-bottom:none"><span class="syl"></span><span class="sid">88 pages</span><span class="st done">● pulled</span><span class="st done">● pushed</span><span class="ttl">all docs pages in manifest · collapsed while healthy</span></div>
+          </div>
+          <div class="m-side">
+            <div class="sh">cognify status — lazy widget</div>
+            <p><span style="color:var(--lime)">●</span> dataset <span style="color:var(--amber)">agent-memory-architectures</span><br>DATASET_PROCESSING_STARTED · 4m elapsed<br><span style="color:#545d68">degrades to "not configured" without env; dataset id cached after first resolve</span></p>
+            <div class="sh" style="margin-top:10px">next</div>
+            <p>run <span style="color:var(--lime)">drc query</span> smoke checks · open <b>atlas</b> for the graph · <b>dossier</b> for the report audit — the event log this run minted feeds both.</p>
+          </div>
+        </div>
+      </div>
+      <p class="fcap"><b>What you check:</b> pushed counts match expectations, and the one <b style="color:var(--amber)">◪ disagreement</b> — status claims ingested, manifest says otherwise — is a first-class cell state you can see, click, and retry. The lie a status field can tell is exactly what the manifest column exists to catch.</p>
+    </div>
+
+  </div>
+  </div>
+</section>
+
+<!-- ============================================================ ACT 6 · DESIGN DECISIONS -->
+<section class="act" id="decisions">
+  <div class="act-kicker"><span class="n">act 06</span> · design decisions</div>
+  <h2 class="act-title">Eight decisions, each with receipts</h2>
+  <p class="act-sub">Every load-bearing choice traces to the research base: R1 (live observability), R6 (corpus triage UX), R7 (local web-app stacks), CS1 (oversight-cockpit anatomy), S2/S3 (synthesis), and the critique round.</p>
+
+  <div class="dgrid">
+    <div class="dcard">
+      <div class="dh"><span class="dn">D·01</span>Counts-by-state. Never percent bars.</div>
+      <div class="dwhy">Harvest keeps growing the denominator; a percent bar would oscillate and lie. Counts per state, per lane, each one a click-filter — progress reads as <b>flow through the funnel</b>, not fraction of an unknowable total.</div>
+      <div class="dchips"><span class="chip">[R1: pattern 8]</span><span class="chip lime">[§2 P3]</span></div>
+    </div>
+    <div class="dcard">
+      <div class="dh"><span class="dn">D·02</span>The grid never leaves the screen.</div>
+      <div class="dwhy">Airflow's core move: detail rotates through a sidebar while the matrix holds context. Click a cell → inspector fills; <b>zero navigation, zero context loss</b>. Hover→click→drill is the entire interaction grammar.</div>
+      <div class="dchips"><span class="chip">[R1: Airflow grid]</span><span class="chip">[CS1]</span></div>
+    </div>
+    <div class="dcard">
+      <div class="dh"><span class="dn">D·03</span>Errors are hoisted, and the failing stage auto-expands.</div>
+      <div class="dwhy">Airflow's known weakness is that <em>why</em> lives two clicks deep. GitHub Actions' fix — annotations up top, failed step pre-opened — makes required interactions to see error text <b>zero-to-one</b>. The cockpit steals it whole.</div>
+      <div class="dchips"><span class="chip">[CS1: Actions annotations]</span></div>
+    </div>
+    <div class="dcard">
+      <div class="dh"><span class="dn">D·04</span>The Now panel answers "wedged?" — and reports observables, not diagnoses.</div>
+      <div class="dwhy">Temporal's Pending Activities panel kills the most anxiety-producing question by making retry state first-class. The stall warning says <b>"no file activity for 190s"</b> — never "stuck" — with the threshold scaled per event kind, because a thinking agent isn't a wedged one.</div>
+      <div class="dchips"><span class="chip">[CS1: Temporal]</span><span class="chip lime">[§6: per-kind threshold]</span></div>
+    </div>
+    <div class="dcard">
+      <div class="dh"><span class="dn">D·05</span>Per-category lanes, and the last column is manifest truth.</div>
+      <div class="dwhy">Docs sources are born scraped and skip distill — one universal funnel would render tool-graph runs as permanently broken. Docs lane = pulled→pushed; web lane = the full four. And <b>pushed derives from ingested.json keys</b>, with status-vs-manifest disagreement as a visible state.</div>
+      <div class="dchips"><span class="chip lime">[§6: lanes]</span><span class="chip violet">[critique: ACCEPT ×2]</span></div>
+    </div>
+    <div class="dcard">
+      <div class="dh"><span class="dn">D·06</span>Zero-target queues with persisted verbs.</div>
+      <div class="dwhy">Screening tools converge on the same triage shape: a queue you drive to zero, keyboard verbs that act-and-advance, undo within reach. Every verb appends to <b>viz/directives.jsonl</b> — queues derive from sources ⊖ directives, so a reload never resurrects finished work.</div>
+      <div class="dchips"><span class="chip">[R6: zero-target queues]</span><span class="chip lime">[§6: triage persists]</span></div>
+    </div>
+    <div class="dcard">
+      <div class="dh"><span class="dn">D·07</span>Files in, SSE out, nothing in between.</div>
+      <div class="dwhy">The workspace is already watchable — everything but Cognee is plain files in one directory. FastAPI + watchfiles + htmx-over-SSE means <b>no DB, no build step, no daemon</b> beyond <span class="mono" style="font-size:12.5px">drc dash</span>. The watcher mints events.jsonl because sources.jsonl is a rewritten state doc, not a stream: full reparse, id→hash diff, semantic transitions.</div>
+      <div class="dchips"><span class="chip">[R7: files+SSE stack]</span><span class="chip">[S2]</span><span class="chip lime">[§2 P1–P2]</span></div>
+    </div>
+    <div class="dcard">
+      <div class="dh"><span class="dn">D·08</span>Entity pulse: the graph preview before the graph exists.</div>
+      <div class="dwhy">Entities across distilled records form a co-occurrence network <em>before Cognee runs</em> — with perfect provenance back to source ids. As a ranked-bar panel it answers Q5 ("what is it learning?") for free, and it's the same D5 layer the atlas uses as its pre-cognify empty state. <b>One data derivation, two surfaces.</b></div>
+      <div class="dchips"><span class="chip">[S3: D5 underexploited]</span><span class="chip">[00-framework: D5]</span></div>
+    </div>
+  </div>
+</section>
+<!-- ============================================================ ACT 7 · BUILD PLAN -->
+<section class="act" id="plan">
+  <div class="act-kicker"><span class="n">act 07</span> · build plan</div>
+  <h2 class="act-title">Honest budgets, one gate, two pipeline touches</h2>
+  <p class="act-sub">Post-critique numbers, not the optimistic first draft: v0 stays a day; v1 was re-budgeted from "2–3 days" to 5–6. Almost everything is a pure addition under <span class="mono">dr_cognee/dash/</span>; the two pipeline touches are named in violet, not smuggled.</p>
+
+  <div class="spike-banner">
+    <div class="sb-k">SPIKE · ½ DAY<br>BEFORE ANYTHING</div>
+    <div class="sb-t"><b>Watcher torture test:</b> run <span class="mono" style="font-size:13.5px">awatch</span> against a scripted <span class="mono" style="font-size:13.5px">SourceStore.update</span> loop on a real workspace — count parse failures, torn reads, and phantom events under rapid rewrites. The entire design sits on the watcher being trustworthy; a half day of adversarial testing buys that trust before a line of UI exists.</div>
+    <div class="sb-gate">GATES THE MISSION BUILD<br><span style="color:var(--amber)">fail → fix the diff strategy first, not the panels</span> <span class="chip">[05-critique: spike 1]</span></div>
+  </div>
+
+  <div class="phases">
+    <div class="panel phase">
+      <div class="ph"><span class="pv">v0</span><span class="pd">≈ 1 day</span></div>
+      <div class="answers">answers <b>Q1 · Q2</b> — working? broken? · the durable core, nothing else</div>
+      <ul>
+        <li>WorkspaceWatcher → viz/events.jsonl <small>(reparse, id→hash diff, rotation)</small></li>
+        <li>per-lane funnel strip <small>(counts-by-state)</small></li>
+        <li>source × stage grid, category bands</li>
+        <li>inspector rendering DistilledRecord</li>
+        <li>SSE refresh (~2s), Topic Shelf entry</li>
+        <li class="pipe">SourceStore.update → atomic tmp-write + rename <small>(~3 lines, accepted)</small></li>
+      </ul>
+      <div class="pfoot">no triage mode yet · already beats tailing the chat</div>
+    </div>
+    <div class="panel phase" style="border-color:rgba(126,231,135,.45)">
+      <div class="ph"><span class="pv">v1</span><span class="pd">≈ 5–6 days</span><span class="pd strike">2–3 days</span><span style="font-family:var(--mono);font-size:11.5px;color:var(--muted)">← re-budgeted after feasibility critique</span></div>
+      <div class="answers">answers <b>all five questions</b> — the full cockpit in this pitch's mockup</div>
+      <ul>
+        <li>Now panel with inline log.md line + per-kind stall thresholds</li>
+        <li>hoisted error strip, deep-links, dead-vs-healing states</li>
+        <li>facet rail (counts-as-filters, ⚠ thin facets)</li>
+        <li>since-you-left system <small>(violet dots, chips, sparkline segment, badge-click clear)</small></li>
+        <li>Watch/Triage modes · j/k + verbs · steering-note composer</li>
+        <li class="pipe">viz/directives.jsonl — pulled forward from v1.5; verbs persist; one shared Pydantic model, version field from day one</li>
+        <li>entity pulse + log narrative panes</li>
+        <li>pushed column from ingested.json + ◪ disagreement state</li>
+      </ul>
+      <div class="pfoot">exit test: the 90-second walkthrough runs on a live workspace in ≤2 clicks</div>
+    </div>
+    <div class="panel phase">
+      <div class="ph"><span class="pv">v1.5</span><span class="pd">≈ 1–2 days</span></div>
+      <div class="answers">closes the steering loop + adds the time dimension</div>
+      <ul>
+        <li class="pipe">one paragraph in each skill: "between iterations, read viz/directives.jsonl if present"</li>
+        <li>timeline strip — per-source stage waterfall from events.jsonl <small>(horizontal scroll)</small></li>
+        <li>cognify-status widget <small>(lazy client, 15s poll, degrades to "not configured")</small></li>
+      </ul>
+      <div class="pfoot">M7 retrospective stays cut — but events.jsonl is quietly accumulating the data a future replay tool needs</div>
+    </div>
+  </div>
+
+  <div class="panel pipe-note" style="display:grid;grid-template-columns:280px 1fr;gap:30px;align-items:center">
+    <div style="font-family:var(--mono);font-size:13px;color:var(--violet);letter-spacing:.1em">⚙ PIPELINE CHANGES<br>ACCEPTED · TOTAL: 2</div>
+    <p class="prose" style="font-size:15.5px">The original promise was "all pure additions." The critique found two places that promise was worth breaking, and the design breaks it out loud: <strong>(1)</strong> <span class="mono" style="font-size:13px;color:var(--violet)">SourceStore.update</span> gets an atomic tmp-write + rename so the watcher can never read a torn sources.jsonl — about three lines; <strong>(2)</strong> the two skills each gain one sentence teaching the agent to read <span class="mono" style="font-size:13px;color:var(--violet)">viz/directives.jsonl</span> between iterations. Everything else lives in <span class="mono" style="font-size:13px">dr_cognee/dash/</span> and can be deleted without a trace. <span class="chip">[05-critique: torn reads → ACCEPT]</span></p>
+  </div>
+</section>
+
+<!-- ============================================================ ACT 8 · CRITICS -->
+<section class="act" id="critics">
+  <div class="act-kicker"><span class="n">act 08</span> · what the critics said</div>
+  <h2 class="act-title">The design was attacked before it was pitched</h2>
+  <p class="act-sub">Two critique agents (UX + feasibility) plus a skeptic pass ran against the draft. Every finding got a verdict — ACCEPT, MODIFY, or REJECT with reasons — and the accepted ones are already folded into everything above. Showing the scars is part of the pitch.</p>
+
+  <div class="crit-grid">
+    <div class="panel objection">
+      <div class="oh">the strongest objection · skeptic</div>
+      <blockquote>"The agent chat next door already does this. You can just ask it what happened. Why build a dashboard for a conversation you're already having?"</blockquote>
+      <div class="resp-h">verdict: modify — reframe, not redesign</div>
+      <p class="prose" style="font-size:15.5px">Conceded where it's true: for <strong>"what are you doing right now?"</strong>, the chat is genuinely competitive, and the Now panel and feeds are honestly labeled as cheap by-products of a watcher that exists anyway. But the objection dies on three counter-examples: a transcript cannot show the <strong>shape of 134 sources at once</strong>, cannot <strong>diff itself against your last visit</strong>, and cannot hold a <strong>persistent triage worklist with undo</strong>. Asking the agent to reconstruct any of these burns tokens and minutes to produce, every time, a worse version of a screen that renders in milliseconds — and its answer is a claim, where the grid is <em>evidence read directly from the files</em>. So the value claim narrowed to exactly what survives: <strong>grid + queues + since-you-left delta</strong>. v0 builds only that. <span class="chip">[05-critique: skeptic → MODIFY]</span></p>
+    </div>
+
+    <div class="panel finding">
+      <div class="fh2"><span class="sev threat">THREATENING</span><h4>Torn reads of sources.jsonl</h4></div>
+      <p class="was">The pipeline rewrites sources.jsonl in place; the watcher can catch a half-written file, parse garbage, and emit phantom source-removals that make the grid flicker with lies.</p>
+      <div class="fix"><b>FIX — ACCEPTED, TWO-SIDED</b>Watcher treats parse-failure or a shrunk file as retry-after-debounce and never emits removals from a failed parse; AND SourceStore.update gains the atomic tmp-write + rename. Belt, suspenders, and a torture-test spike to prove both.</div>
+    </div>
+
+    <div class="panel finding">
+      <div class="fh2"><span class="sev threat">THREATENING</span><h4>Triage verbs didn't persist</h4></div>
+      <p class="was">In the draft, dismissals and chases lived in browser memory; a reload resurrected every flag you'd already handled. Ten minutes of triage work, evaporated — the kind of betrayal that kills a personal tool.</p>
+      <div class="fix"><b>FIX — ACCEPTED</b>viz/directives.jsonl pulled forward from v1.5 to v1. Every verb appends a record (dismiss/snooze are directives <em>to the dashboard</em>, same schema); queues derive from sources ⊖ directives.</div>
+    </div>
+
+    <div class="panel finding">
+      <div class="fh2"><span class="sev mat">MATERIAL</span><h4>One funnel shape was wrong for half the runs</h4></div>
+      <p class="was">Tool-graph workspaces are dominated by docs sources, which are born scraped and never distill — the draft's single found→scraped→distilled→ingested funnel would show them permanently stalled at two stages.</p>
+      <div class="fix"><b>FIX — ACCEPTED</b>Per-category lanes (docs: pulled→pushed; web: all four), verified against docs_pull.py and ingest.py. Bonus fix from the same review: "ingested" status can lie, so the pushed column reads ingested.json instead.</div>
+      <div class="fix" style="margin-top:10px"><b>ALSO CAUGHT · MATERIAL</b>Watcher watching its own viz/ writes (excluded); events.jsonl unbounded (rotate 10MB×2); Esc doing two jobs (one keymap: dismiss only); stall threshold crying wolf on slow distills (per-kind scaling); "v1 in 2–3 days" (re-budgeted to 5–6).</div>
+    </div>
+  </div>
+
+  <div class="panel honesty" style="display:grid;grid-template-columns:280px 1fr;gap:30px;align-items:center;border-color:rgba(210,153,34,.4)">
+    <div style="font-family:var(--mono);font-size:13px;color:var(--amber);letter-spacing:.1em">WHAT THE COCKPIT<br>STILL CAN'T DO</div>
+    <p class="prose" style="font-size:15.5px">History starts when the watcher starts — <strong>"observed since 14:02"</strong> is printed on the chrome, not hidden. If the cockpit wasn't running, deltas and timeline degrade while the grid stays correct (it's state-based). Stall detection reports file-activity gaps, not agent cognition. And the steering loop is only as good as the skill honoring directives.jsonl — until v1.5 lands that sentence, the copy-paste steering note is the honest channel. None of these are footnotes; they're the shape of the tool.</p>
+  </div>
+</section>
+
+<!-- ============================================================ ACT 9 · VERDICT -->
+<section class="act" id="verdict">
+  <div class="act-kicker"><span class="n">act 09</span> · verdict</div>
+  <h2 class="act-title">Scorecard and build order</h2>
+  <p class="act-sub">Rubric from the framework's selection round (1–5 per axis), scored across the three-pitch portfolio: mission, atlas, dossier.</p>
+
+  <div class="verdict-strip">
+    <div>
+      <div class="bh" style="margin-bottom:18px">RUBRIC — drc mission</div>
+      <div class="rubric">
+        <div class="rub"><span class="rk">Decision value <small>changes what she does next</small></span><span class="blocks"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span><span class="rv">5</span></div>
+        <div class="rub"><span class="rk">Data availability <small>D1·D2·D4·D6·D10 — all proven</small></span><span class="blocks"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span><span class="rv">5</span></div>
+        <div class="rub"><span class="rk">Build cost <small>v0 a day; v1 an honest 5–6</small></span><span class="blocks"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span><span class="rv">4</span></div>
+        <div class="rub"><span class="rk">Maintenance drag <small>watcher tracks pipeline schema</small></span><span class="blocks"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span><span class="rv">4</span></div>
+        <div class="rub"><span class="rk">Wide-canvas payoff <small>134 sources, one glance</small></span><span class="blocks"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span><span class="rv">5</span></div>
+      </div>
+      <div style="margin-top:18px;font-family:var(--mono);font-size:13px;color:var(--muted)">total <b style="color:var(--lime);font-size:17px">23 / 25</b> — highest of the three pitches</div>
+    </div>
+    <div class="verdict-say">
+      <span class="big">Build the cockpit <span class="lime">first</span> — it's the only pitch that pays out while the machine is still running.</span>
+      It serves the highest-frequency moment (every run, every few minutes), consumes only data that provably exists today, and its watcher + events.jsonl become the <strong>shared chassis</strong> the other two surfaces stand on — the atlas's pre-cognify entity layer is this cockpit's pulse panel, and the dossier's provenance joins ride the same workspace plumbing. The recommended opening move is the <strong>shared-chassis v0 week</strong>: mission v0 (watcher + grid + inspector) alongside atlas and dossier v0 slices, ≈ one week total — then let actual usage decide which v1 earns its 5–6 days. <span class="chip">[05-critique: portfolio → MODIFY]</span> Risk-adjusted, the mission is the safest bet on the board: its worst case — only v0 ever ships — is already a screen you'd keep open every run.
+    </div>
+    <div>
+      <div class="bh" style="margin-bottom:18px">BUILD ORDER — the family</div>
+      <div class="order">
+        <div class="orow first"><span class="on">1st</span><div class="ot"><b>mission — Run Cockpit</b><span>this pitch · live oversight · watcher is the family chassis</span></div></div>
+        <div class="orow"><span class="on">2nd</span><div class="ot"><b>dossier — report audit</b><span>per-run read/audit value · gated by the citation-coverage script</span></div></div>
+        <div class="orow"><span class="on">3rd</span><div class="ot"><b>atlas — graph explorer</b><span>weakest-demand job, conceded · gated by the provenance-join spike</span></div></div>
+      </div>
+      <div style="margin-top:16px;font-size:13px;color:var(--muted);font-family:var(--mono)">gate before any build: the ½-day watcher torture test</div>
+    </div>
+  </div>
+
+  <footer class="colophon">
+    <span>drc mission — Run Cockpit · pitch report · 2026-07-07</span>
+    <span>design: docs/viz/usecases/drc-mission.md (§6 revisions applied)</span>
+    <span>evidence: R1 · R6 · R7 · CS1 · S2 · S3 · 05-critique-response.md</span>
+    <span>accent pair: amber #d29922 + lime #7ee787 · Fira Code / Space Grotesk / Source Serif 4</span>
+    <span>self-contained · no external JS · fonts via Google Fonts</span>
+  </footer>
+</section>
+
+</div>
+
+<script>
+// Act nav: highlight the section currently in view.
+(function () {
+  var links = Array.prototype.slice.call(document.querySelectorAll('#actnav a'));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+  var sections = Array.prototype.slice.call(document.querySelectorAll('section.act'));
+  function setActive(id) {
+    links.forEach(function (a) { a.classList.remove('active'); });
+    if (byId[id]) byId[id].classList.add('active');
+  }
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) { if (e.isIntersecting) setActive(e.target.id); });
+  }, { rootMargin: '-25% 0px -60% 0px', threshold: 0 });
+  sections.forEach(function (s) { observer.observe(s); });
+
+  // Filmstrip: translate vertical wheel into horizontal scroll while hovering the strip.
+  var strip = document.querySelector('.filmstrip');
+  if (strip) {
+    strip.addEventListener('wheel', function (ev) {
+      if (Math.abs(ev.deltaY) > Math.abs(ev.deltaX)) {
+        var atStart = strip.scrollLeft <= 0 && ev.deltaY < 0;
+        var atEnd = strip.scrollLeft + strip.clientWidth >= strip.scrollWidth - 2 && ev.deltaY > 0;
+        if (!atStart && !atEnd) { strip.scrollLeft += ev.deltaY; ev.preventDefault(); }
+      }
+    }, { passive: false });
+  }
+
+  // Demo interaction: clicking the since-you-left chip "marks seen" (violet dots fade).
+  var seen = document.querySelector('.seenchip');
+  if (seen) {
+    seen.addEventListener('click', function () {
+      document.querySelectorAll('.cockpit .syl.on').forEach(function (d) { d.classList.remove('on'); });
+      seen.textContent = '✓ marked seen 14:31 — lastSeen stored in localStorage';
+      seen.style.color = 'var(--muted)'; seen.style.borderColor = 'var(--border)';
+      seen.style.background = 'transparent';
+    });
+  }
+})();
+</script>
+</body>
+</html>

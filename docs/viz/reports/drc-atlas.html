@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>drc atlas — the Graph &amp; Knowledge Explorer · pitch report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400;1,8..60,600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel2: #1c2129;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --violet: #bc8cff;
+    --violet-dim: rgba(188, 140, 255, 0.14);
+    --cyan: #76e3ea;
+    --cyan-dim: rgba(118, 227, 234, 0.12);
+    --orange: #f0883e;
+    --orange-dim: rgba(240, 136, 62, 0.15);
+    --green: #3fb950;
+    --green-dim: rgba(63, 185, 80, 0.14);
+    --red: #f85149;
+    --red-dim: rgba(248, 81, 73, 0.12);
+    --amber: #d29922;
+    --amber-dim: rgba(210, 153, 34, 0.14);
+    --mono: "Fira Code", ui-monospace, monospace;
+    --head: "Space Grotesk", system-ui, sans-serif;
+    --serif: "Source Serif 4", Georgia, serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.6;
+    min-width: 3700px;
+  }
+  code, pre, .mono { font-family: var(--mono); font-feature-settings: "liga" 1, "calt" 1; }
+  code { background: var(--panel2); border: 1px solid var(--border); border-radius: 5px; padding: 1px 7px; font-size: 0.82em; color: var(--cyan); white-space: nowrap; }
+  h1, h2, h3, h4 { font-family: var(--head); font-weight: 700; letter-spacing: -0.01em; }
+  a { color: var(--cyan); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .canvas { width: 3560px; margin: 0; padding: 0 60px 140px 250px; }
+
+  /* ---------- fixed nav ---------- */
+  .nav {
+    position: fixed; top: 22px; left: 22px; z-index: 200;
+    width: 178px; background: var(--panel); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 12px; font-family: var(--head);
+  }
+  .nav .nav-title { font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--violet); margin-bottom: 10px; letter-spacing: 0.04em; }
+  .nav a { display: block; color: var(--muted); font-size: 13px; padding: 4px 8px; border-radius: 6px; border-left: 2px solid transparent; }
+  .nav a:hover { color: var(--text); text-decoration: none; background: var(--panel2); }
+  .nav a.active { color: var(--cyan); border-left-color: var(--cyan); background: var(--cyan-dim); }
+  .nav .nav-foot { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-family: var(--mono); font-size: 10.5px; color: var(--muted); line-height: 1.7; }
+
+  /* ---------- shared section furniture ---------- */
+  section { margin-top: 110px; scroll-margin-top: 30px; }
+  .sec-head { display: flex; align-items: baseline; gap: 26px; margin-bottom: 34px; }
+  .sec-head .kicker { font-family: var(--mono); font-size: 13px; color: var(--violet); letter-spacing: 0.14em; text-transform: uppercase; white-space: nowrap; }
+  .sec-head h2 { font-size: 40px; white-space: nowrap; }
+  .sec-head .rule { flex: 1; height: 1px; background: linear-gradient(90deg, var(--border), transparent); }
+  .sec-head .aside { font-family: var(--head); font-size: 14px; color: var(--muted); white-space: nowrap; }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 26px 30px; }
+  .panel h3 { font-size: 20px; margin-bottom: 12px; }
+  .panel h3 .h-ic { color: var(--violet); margin-right: 8px; font-family: var(--mono); font-weight: 600; }
+  .panel p { color: var(--text); }
+  .panel p + p { margin-top: 10px; }
+  .dim { color: var(--muted); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 26px; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 26px; }
+
+  .ev { display: inline-block; font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--violet); background: var(--violet-dim); border: 1px solid rgba(188,140,255,0.35); border-radius: 5px; padding: 1px 7px; margin: 2px 3px 2px 0; white-space: nowrap; }
+  .ev.cy { color: var(--cyan); background: var(--cyan-dim); border-color: rgba(118,227,234,0.35); }
+  .tag { display: inline-block; font-family: var(--mono); font-size: 11.5px; border-radius: 999px; padding: 2px 11px; border: 1px solid var(--border); color: var(--muted); margin: 2px 4px 2px 0; }
+
+  /* ---------- hero ---------- */
+  .hero { position: relative; padding: 74px 0 30px; overflow: hidden; }
+  .hero-grid { display: grid; grid-template-columns: 1520px 1fr; gap: 60px; align-items: start; }
+  .hero .brand { font-family: var(--mono); font-size: 14px; color: var(--cyan); letter-spacing: 0.18em; margin-bottom: 20px; }
+  .hero h1 { font-size: 92px; line-height: 1.02; letter-spacing: -0.03em; margin-bottom: 8px; }
+  .hero h1 .vio { color: var(--violet); }
+  .hero .sub { font-family: var(--head); font-size: 30px; color: var(--muted); font-weight: 500; margin: 22px 0 14px; }
+  .hero .sub b { color: var(--cyan); font-weight: 600; }
+  .hero .lede { font-size: 20px; max-width: 1280px; color: var(--text); margin-top: 18px; }
+  .hero .lede em { color: var(--violet); font-style: italic; }
+  .constellation { position: absolute; right: 40px; top: 30px; opacity: 0.85; pointer-events: none; }
+  .killer {
+    margin-top: 36px; display: inline-flex; align-items: center; gap: 22px;
+    background: linear-gradient(90deg, var(--violet-dim), var(--cyan-dim));
+    border: 1px solid rgba(188,140,255,0.4); border-radius: 14px; padding: 20px 30px;
+  }
+  .killer .k-label { font-family: var(--mono); font-size: 12px; color: var(--violet); letter-spacing: 0.1em; text-transform: uppercase; }
+  .killer .k-fact { font-family: var(--mono); font-size: 21px; font-weight: 600; color: var(--text); }
+  .killer .k-fact .hl { color: var(--cyan); }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 10px; }
+  .stat { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; }
+  .stat .n { font-family: var(--head); font-size: 40px; font-weight: 700; color: var(--cyan); line-height: 1.1; }
+  .stat .n.vio { color: var(--violet); }
+  .stat .l { font-family: var(--head); font-size: 13.5px; color: var(--muted); margin-top: 6px; line-height: 1.45; }
+  .stat .l b { color: var(--text); font-weight: 600; }
+
+  /* ---------- moment ---------- */
+  .qlist { counter-reset: q; list-style: none; }
+  .qlist li { counter-increment: q; display: flex; gap: 18px; padding: 15px 4px; border-bottom: 1px solid var(--border); align-items: baseline; }
+  .qlist li:last-child { border-bottom: none; }
+  .qlist li::before { content: counter(q); font-family: var(--head); font-weight: 700; font-size: 22px; color: var(--violet); min-width: 34px; text-align: center; background: var(--violet-dim); border-radius: 8px; line-height: 1.5; }
+  .qlist .q { font-family: var(--head); font-size: 18px; font-weight: 600; }
+  .qlist .a { color: var(--muted); font-size: 15px; margin-left: auto; text-align: right; font-family: var(--head); white-space: nowrap; }
+  .anti { border-color: rgba(248,81,73,0.45); }
+  .anti h3 { color: var(--red); }
+  .hairball { position: relative; height: 190px; border-radius: 10px; background: var(--bg); border: 1px solid var(--border); overflow: hidden; margin: 16px 0 14px; }
+  .hairball .hb-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 13px; color: var(--red); background: rgba(13,17,23,0.35); text-shadow: 0 0 12px #0d1117; }
+  .interaction-list { font-family: var(--mono); font-size: 13.5px; line-height: 2.05; margin: 14px 0; }
+  .interaction-list .yes { color: var(--text); }
+  .interaction-list .yes::before { content: "✓ "; color: var(--amber); }
+  .interaction-list .no { color: var(--muted); text-decoration: line-through; text-decoration-color: rgba(248,81,73,0.6); }
+  .interaction-list .no::before { content: "✗ "; color: var(--red); text-decoration: none; }
+
+  /* ---------- how it works ---------- */
+  .flowline { display: flex; align-items: stretch; gap: 0; margin: 18px 0; }
+  .flow-step { flex: 1; background: var(--panel2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; position: relative; }
+  .flow-step + .flow-step { margin-left: 34px; }
+  .flow-step + .flow-step::before { content: "→"; position: absolute; left: -26px; top: 50%; transform: translateY(-50%); color: var(--violet); font-family: var(--head); font-size: 20px; font-weight: 700; }
+  .flow-step .fs-t { font-family: var(--head); font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+  .flow-step .fs-d { font-size: 13.5px; color: var(--muted); line-height: 1.5; }
+  .layercard { border-left: 3px solid var(--cyan); }
+  .layercard.l1 { border-left-color: var(--violet); }
+  .layer-badge { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--cyan); }
+  .l1 .layer-badge { color: var(--violet); }
+
+  /* provenance chain */
+  .provchain { display: flex; align-items: center; gap: 0; margin: 24px 0 10px; }
+  .pc-node { background: var(--panel2); border: 1.5px solid var(--violet); border-radius: 10px; padding: 13px 18px; min-width: 200px; position: relative; }
+  .pc-node.drc { border-color: var(--cyan); }
+  .pc-node .pc-t { font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--text); }
+  .pc-node .pc-s { font-family: var(--head); font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .pc-arrow { flex: 0 0 66px; text-align: center; position: relative; }
+  .pc-arrow .pa-line { height: 2px; background: var(--border); margin: 0 4px; position: relative; top: 2px; }
+  .pc-arrow .pa-lbl { font-family: var(--mono); font-size: 10.5px; color: var(--muted); display: block; margin-bottom: 5px; white-space: nowrap; }
+  .pc-join { flex: 0 0 118px; text-align: center; }
+  .pc-join .pj-box { border: 1.5px dashed var(--amber); border-radius: 8px; padding: 6px 8px; font-family: var(--mono); font-size: 10.5px; color: var(--amber); line-height: 1.45; background: var(--amber-dim); }
+  .side-lbl { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px; }
+  .confvocab { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 20px; }
+  .conf { border-radius: 10px; border: 1px solid var(--border); padding: 12px 16px; background: var(--panel2); }
+  .conf .c-name { font-family: var(--mono); font-size: 14px; font-weight: 600; }
+  .conf .c-d { font-size: 13px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+  .conf.exact .c-name { color: var(--green); }
+  .conf.fuzzy .c-name { color: var(--cyan); }
+  .conf.revun .c-name { color: var(--amber); }
+  .conf.unres .c-name { color: var(--red); }
+  /* ---------- mockup ---------- */
+  .mockwrap { position: relative; }
+  .mockup { width: 3300px; background: #0a0e14; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(188,140,255,0.08); }
+  .mk-chrome { display: flex; align-items: center; gap: 14px; padding: 11px 18px; background: var(--panel); border-bottom: 1px solid var(--border); }
+  .mk-dots { display: flex; gap: 7px; }
+  .mk-dots span { width: 12px; height: 12px; border-radius: 50%; background: #30363d; }
+  .mk-dots span:nth-child(1) { background: #f85149; } .mk-dots span:nth-child(2) { background: #d29922; } .mk-dots span:nth-child(3) { background: #3fb950; }
+  .mk-url { flex: 1; max-width: 900px; font-family: var(--mono); font-size: 12.5px; color: var(--muted); background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 5px 14px; }
+  .mk-url .u-hl { color: var(--cyan); }
+  .mk-chrome .mk-app { font-family: var(--head); font-size: 13px; color: var(--muted); margin-left: auto; }
+  .mk-topbar { display: flex; align-items: center; gap: 18px; padding: 13px 22px; background: #10151d; border-bottom: 1px solid var(--border); }
+  .omnibox { display: flex; align-items: center; gap: 10px; width: 620px; background: var(--bg); border: 1.5px solid var(--cyan); border-radius: 9px; padding: 8px 16px; box-shadow: 0 0 0 3px var(--cyan-dim); }
+  .omnibox .om-ic { color: var(--cyan); font-size: 15px; }
+  .omnibox .om-q { font-family: var(--mono); font-size: 15px; color: var(--text); }
+  .omnibox .om-cursor { display: inline-block; width: 8px; height: 18px; background: var(--cyan); animation: blink 1.1s steps(1) infinite; vertical-align: text-bottom; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .omnibox .om-hint { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--muted); border: 1px solid var(--border); border-radius: 4px; padding: 0 6px; }
+  .chiprow { display: flex; align-items: center; gap: 8px; }
+  .cq { font-family: var(--mono); font-size: 12px; color: var(--violet); background: var(--violet-dim); border: 1px solid rgba(188,140,255,0.35); border-radius: 999px; padding: 4px 13px; cursor: pointer; white-space: nowrap; }
+  .cq:hover { background: rgba(188,140,255,0.24); }
+  .lensbar { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  .lensbar .lens-lbl { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+  .lens { font-family: var(--mono); font-size: 12px; color: var(--muted); background: transparent; border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; cursor: pointer; user-select: none; }
+  .lens .cnt { color: var(--muted); opacity: 0.75; font-size: 10.5px; }
+  .lens.on { color: var(--cyan); border-color: rgba(118,227,234,0.55); background: var(--cyan-dim); }
+  .lens.on .cnt { color: var(--cyan); }
+  .mk-snap { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 12px; color: var(--text); background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 5px 13px; white-space: nowrap; }
+  .mk-btn { font-family: var(--mono); font-size: 12px; color: var(--text); background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 5px 13px; cursor: pointer; white-space: nowrap; }
+  .mk-btn:hover { border-color: var(--violet); color: var(--violet); }
+  .mk-body { display: grid; grid-template-columns: 360px 1fr 440px; min-height: 980px; }
+
+  /* analytics rail */
+  .mk-rail { border-right: 1px solid var(--border); background: #0e131a; padding: 18px 16px; display: flex; flex-direction: column; gap: 20px; overflow: hidden; }
+  .rail-h { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 9px; display: flex; align-items: center; gap: 8px; }
+  .rail-h .warn { color: var(--amber); }
+  .comm { display: flex; align-items: center; gap: 10px; padding: 5px 8px; border-radius: 7px; font-family: var(--mono); font-size: 13px; cursor: pointer; }
+  .comm:hover { background: var(--panel2); }
+  .comm .swatch { width: 11px; height: 11px; border-radius: 3px; flex: 0 0 auto; }
+  .comm .c-n { color: var(--text); }
+  .comm .c-bar { flex: 1; height: 5px; border-radius: 3px; background: var(--panel2); position: relative; overflow: hidden; }
+  .comm .c-bar i { position: absolute; inset: 0 auto 0 0; border-radius: 3px; }
+  .comm .c-cnt { color: var(--muted); font-size: 12px; min-width: 24px; text-align: right; }
+  .broker { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 13px; padding: 4px 8px; }
+  .broker .b-n { color: var(--text); min-width: 150px; }
+  .broker .b-bar { flex: 1; height: 7px; background: var(--panel2); border-radius: 4px; overflow: hidden; }
+  .broker .b-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--violet), var(--cyan)); border-radius: 4px; }
+  .broker .b-v { color: var(--muted); font-size: 11.5px; }
+  .gapcard { background: var(--amber-dim); border: 1px solid rgba(210,153,34,0.45); border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
+  .gapcard .g-t { font-family: var(--head); font-size: 14px; font-weight: 600; color: var(--text); display: flex; gap: 8px; align-items: baseline; }
+  .gapcard .g-t .g-ic { color: var(--amber); }
+  .gapcard .g-d { font-family: var(--head); font-size: 12.5px; color: var(--muted); margin: 5px 0 9px; line-height: 1.5; }
+  .gapcard .g-btn { font-family: var(--mono); font-size: 11.5px; color: var(--amber); background: transparent; border: 1px solid rgba(210,153,34,0.55); border-radius: 6px; padding: 3px 10px; cursor: pointer; }
+  .gapcard .g-btn:hover { background: rgba(210,153,34,0.2); }
+  .rail-foot { margin-top: auto; font-family: var(--mono); font-size: 11px; color: var(--muted); border-top: 1px solid var(--border); padding-top: 10px; line-height: 1.8; }
+
+  /* scene canvas */
+  .mk-canvas { position: relative; background:
+      radial-gradient(circle at 20% 30%, rgba(188,140,255,0.045), transparent 40%),
+      radial-gradient(circle at 75% 65%, rgba(118,227,234,0.04), transparent 45%),
+      radial-gradient(rgba(139,148,158,0.13) 1px, transparent 1px);
+    background-size: auto, auto, 34px 34px; overflow: hidden; }
+  .mk-canvas svg.edges { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .gnode { position: absolute; transform: translate(-50%, -50%); display: flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 13px; padding: 7px 14px; border-radius: 999px; white-space: nowrap;
+    background: rgba(22,27,34,0.94); border: 1.5px solid var(--orange); color: var(--text); z-index: 5; cursor: pointer; }
+  .gnode .nd { width: 9px; height: 9px; border-radius: 50%; background: var(--orange); flex: 0 0 auto; }
+  .gnode:hover { border-color: var(--text); }
+  .gnode.etype { border-color: var(--violet); }
+  .gnode.etype .nd { background: var(--violet); }
+  .gnode.focus { font-size: 15px; font-weight: 600; padding: 10px 20px; border-width: 2px;
+    box-shadow: 0 0 0 5px var(--cyan-dim), 0 0 0 2px rgba(118,227,234,0.8), 0 0 30px rgba(118,227,234,0.35); z-index: 8; }
+  .gnode.frontier { border-style: dashed; background: rgba(22,27,34,0.7); color: var(--muted); }
+  .gnode.frontier .nd { opacity: 0.55; }
+  .gnode .plus { font-size: 10.5px; color: var(--cyan); background: var(--cyan-dim); border: 1px solid rgba(118,227,234,0.4); border-radius: 999px; padding: 0 6px; margin-left: 2px; }
+  .gnode.ghosthl { box-shadow: 0 0 0 3px rgba(118,227,234,0.28), 0 0 22px rgba(118,227,234,0.3); }
+  .elabel { position: absolute; transform: translate(-50%, -50%); font-family: var(--mono); font-size: 10.5px; color: var(--muted);
+    background: rgba(10,14,20,0.92); padding: 1px 7px; border-radius: 4px; z-index: 4; white-space: nowrap; }
+  .elabel.ghosthl { color: var(--cyan); border: 1px solid rgba(118,227,234,0.35); }
+  .scene-hud { position: absolute; left: 18px; top: 14px; font-family: var(--mono); font-size: 11.5px; color: var(--muted); z-index: 9;
+    background: rgba(13,17,23,0.85); border: 1px solid var(--border); border-radius: 8px; padding: 7px 13px; line-height: 1.7; }
+  .scene-hud .h-k { color: var(--cyan); }
+  .scene-hud .h-v { color: var(--text); }
+  .scene-legend { position: absolute; right: 18px; top: 14px; z-index: 9; display: flex; gap: 14px; align-items: center;
+    background: rgba(13,17,23,0.85); border: 1px solid var(--border); border-radius: 8px; padding: 7px 14px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .scene-legend .lg { display: flex; align-items: center; gap: 6px; }
+  .scene-legend .dotv { width: 9px; height: 9px; border-radius: 50%; }
+  .scene-footer { position: absolute; left: 18px; bottom: 14px; z-index: 9; font-family: var(--mono); font-size: 11px; color: var(--muted);
+    background: rgba(13,17,23,0.85); border: 1px solid var(--border); border-radius: 8px; padding: 6px 13px; }
+  .scene-footer .k { color: var(--violet); }
+
+  /* inspector */
+  .mk-inspector { border-left: 1px solid var(--border); background: #0e131a; padding: 20px 20px 16px; overflow: hidden; display: flex; flex-direction: column; gap: 16px; }
+  .insp-head .i-name { font-family: var(--mono); font-size: 21px; font-weight: 700; color: var(--text); }
+  .insp-head .i-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .ibadge { font-family: var(--mono); font-size: 11px; border-radius: 5px; padding: 2px 8px; border: 1px solid var(--border); color: var(--muted); }
+  .ibadge.ent { color: var(--orange); border-color: rgba(240,136,62,0.5); background: var(--orange-dim); }
+  .ibadge.set { color: var(--cyan); border-color: rgba(118,227,234,0.4); background: var(--cyan-dim); }
+  .insp-desc { font-size: 14px; color: var(--text); line-height: 1.55; border-left: 3px solid var(--violet); padding-left: 12px; }
+  .insp-kv { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; font-family: var(--mono); font-size: 12px; }
+  .insp-kv .kv { background: var(--panel2); border: 1px solid var(--border); border-radius: 7px; padding: 7px 10px; }
+  .insp-kv .k { color: var(--muted); font-size: 10.5px; display: block; }
+  .insp-kv .v { color: var(--cyan); font-weight: 600; font-size: 14px; }
+  .insp-sec { border-top: 1px solid var(--border); padding-top: 12px; }
+  .insp-sec .s-h { font-family: var(--mono); font-size: 11px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--muted); margin-bottom: 9px; }
+  .edgegroup { display: flex; align-items: center; justify-content: space-between; font-family: var(--mono); font-size: 13px; padding: 6px 9px; border-radius: 7px; cursor: pointer; }
+  .edgegroup:hover { background: var(--panel2); }
+  .edgegroup .eg-l { color: var(--text); }
+  .edgegroup .eg-l::before { content: "—"; color: var(--violet); margin-right: 8px; }
+  .edgegroup .eg-c { color: var(--muted); font-size: 12px; }
+  .crumb { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-family: var(--mono); font-size: 12px; line-height: 2; }
+  .crumb .cr { background: var(--panel2); border: 1px solid var(--border); border-radius: 6px; padding: 2px 9px; color: var(--text); cursor: pointer; }
+  .crumb .cr:hover { border-color: var(--cyan); }
+  .crumb .cr.src { border-color: rgba(118,227,234,0.5); color: var(--cyan); }
+  .crumb .sep { color: var(--muted); }
+  .crumb .cconf { font-size: 10px; border-radius: 4px; padding: 0 6px; }
+  .crumb .cconf.exact { color: var(--green); background: var(--green-dim); border: 1px solid rgba(63,185,80,0.4); }
+  .crumb .cconf.revun { color: var(--amber); background: var(--amber-dim); border: 1px solid rgba(210,153,34,0.4); }
+  .opencontent { font-family: var(--mono); font-size: 12px; color: var(--cyan); background: var(--cyan-dim); border: 1px solid rgba(118,227,234,0.45); border-radius: 7px; padding: 5px 13px; cursor: pointer; display: inline-block; margin-top: 8px; }
+  .rawjson { font-family: var(--mono); font-size: 11.5px; color: var(--muted); background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 13px; line-height: 1.75; overflow: hidden; }
+  .rawjson .jk { color: var(--violet); } .rawjson .js { color: var(--cyan); } .rawjson .jn { color: var(--orange); }
+
+  /* workbench */
+  .mk-bench { border-top: 1px solid var(--border); background: #10151d; padding: 16px 24px 18px; }
+  .bench-top { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+  .bench-top .b-k { font-family: var(--mono); font-size: 11px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+  .bench-top .b-k .key { color: var(--cyan); border: 1px solid var(--border); border-radius: 4px; padding: 0 6px; }
+  .bench-q { flex: 1; font-family: var(--mono); font-size: 14px; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; }
+  .bench-cost { font-family: var(--mono); font-size: 12px; color: var(--amber); background: var(--amber-dim); border: 1px solid rgba(210,153,34,0.4); border-radius: 999px; padding: 4px 14px; white-space: nowrap; }
+  .bench-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+  .btab { font-family: var(--mono); font-size: 12.5px; color: var(--muted); border: 1px solid var(--border); border-radius: 8px 8px 0 0; border-bottom: none; padding: 6px 16px; cursor: pointer; background: transparent; }
+  .btab.on { color: var(--cyan); border-color: rgba(118,227,234,0.5); background: var(--cyan-dim); }
+  .btab .b-state { font-size: 10.5px; margin-left: 8px; opacity: 0.85; }
+  .btab .b-state.ran { color: var(--green); } .btab .b-state.lazy { color: var(--amber); }
+  .bench-panel { display: none; background: var(--bg); border: 1px solid var(--border); border-radius: 0 10px 10px 10px; padding: 14px 20px; font-size: 14.5px; }
+  .bench-panel.on { display: flex; gap: 26px; align-items: flex-start; }
+  .bench-panel .bp-answer { flex: 1; font-family: var(--serif); color: var(--text); line-height: 1.65; }
+  .bench-panel .bp-answer .cite { font-family: var(--mono); font-size: 11.5px; color: var(--violet); }
+  .bench-side { flex: 0 0 460px; display: flex; flex-direction: column; gap: 9px; }
+  .overlay-toggle { font-family: var(--mono); font-size: 12px; color: var(--cyan); border: 1px solid rgba(118,227,234,0.5); background: var(--cyan-dim); border-radius: 8px; padding: 6px 14px; cursor: pointer; text-align: left; }
+  .bench-hist { font-family: var(--mono); font-size: 11.5px; color: var(--muted); line-height: 1.9; }
+  .bench-hist .h-row::before { content: "› "; color: var(--violet); }
+  .bench-lazy { font-family: var(--mono); font-size: 13px; color: var(--muted); padding: 8px 0; }
+  .bench-lazy .runbtn { color: var(--amber); border: 1px solid rgba(210,153,34,0.5); background: var(--amber-dim); border-radius: 7px; padding: 4px 14px; cursor: pointer; font-family: var(--mono); font-size: 12.5px; margin-right: 10px; }
+
+  /* callouts */
+  .callout { position: absolute; z-index: 40; width: 30px; height: 30px; border-radius: 50%; background: var(--cyan); color: #06282b;
+    font-family: var(--head); font-weight: 700; font-size: 15px; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 0 4px rgba(118,227,234,0.25), 0 4px 12px rgba(0,0,0,0.5); cursor: default; }
+  .callout.vio { background: var(--violet); color: #241436; box-shadow: 0 0 0 4px rgba(188,140,255,0.25), 0 4px 12px rgba(0,0,0,0.5); }
+  .callout-legend { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 26px; margin-top: 26px; }
+  .cl-item { display: flex; gap: 13px; align-items: baseline; }
+  .cl-item .cl-n { flex: 0 0 26px; height: 26px; border-radius: 50%; background: var(--cyan); color: #06282b; font-family: var(--head); font-weight: 700; font-size: 13.5px; display: inline-flex; align-items: center; justify-content: center; position: relative; top: 5px; }
+  .cl-item.vio .cl-n { background: var(--violet); color: #241436; }
+  .cl-item .cl-t { font-family: var(--head); font-size: 15px; font-weight: 600; }
+  .cl-item .cl-d { font-size: 13.5px; color: var(--muted); line-height: 1.5; }
+
+  /* ---------- filmstrip ---------- */
+  .film { display: flex; gap: 24px; overflow-x: auto; padding: 8px 4px 22px; scroll-snap-type: x proximity; }
+  .film::-webkit-scrollbar { height: 10px; }
+  .film::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; }
+  .frame { flex: 0 0 780px; scroll-snap-align: start; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+  .frame-head { display: flex; align-items: baseline; gap: 12px; padding: 15px 20px 12px; border-bottom: 1px solid var(--border); }
+  .frame-head .f-n { font-family: var(--mono); font-size: 12px; color: var(--cyan); background: var(--cyan-dim); border: 1px solid rgba(118,227,234,0.4); border-radius: 6px; padding: 1px 9px; }
+  .frame-head .f-t { font-family: var(--head); font-size: 17px; font-weight: 700; }
+  .frame-head .f-k { margin-left: auto; font-family: var(--mono); font-size: 10.5px; color: var(--muted); }
+  .frame-viz { position: relative; height: 380px; background: #0a0e14; overflow: hidden;
+     background-image: radial-gradient(rgba(139,148,158,0.1) 1px, transparent 1px); background-size: 28px 28px; }
+  .frame-cap { padding: 13px 20px 16px; font-size: 14px; color: var(--muted); line-height: 1.55; }
+  .frame-cap b { color: var(--text); }
+  .metanode { position: absolute; transform: translate(-50%,-50%); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-family: var(--mono); border: 1.5px solid; background: rgba(22,27,34,0.9); z-index: 3; }
+  .metanode .m-n { font-size: 12px; color: var(--text); font-weight: 600; }
+  .metanode .m-c { font-size: 10.5px; color: var(--muted); }
+  .ta-row { display: flex; align-items: center; gap: 10px; padding: 9px 14px; font-family: var(--mono); font-size: 13px; border-bottom: 1px solid var(--border); }
+  .ta-row.sel { background: var(--cyan-dim); border-left: 3px solid var(--cyan); }
+  .ta-row .t-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .ta-row .t-name { color: var(--text); font-weight: 600; min-width: 190px; }
+  .ta-row .t-desc { color: var(--muted); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  .ctxmenu { position: absolute; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 6px; z-index: 20; box-shadow: 0 14px 40px rgba(0,0,0,0.6); font-family: var(--mono); font-size: 12.5px; min-width: 240px; }
+  .ctxmenu .cm-i { padding: 7px 12px; border-radius: 6px; color: var(--text); display: flex; justify-content: space-between; gap: 14px; }
+  .ctxmenu .cm-i:hover { background: var(--panel2); }
+  .ctxmenu .cm-i.sel { background: var(--violet-dim); color: var(--violet); }
+  .ctxmenu .cm-i .cm-c { color: var(--muted); font-size: 11px; }
+  .ctxmenu .cm-div { height: 1px; background: var(--border); margin: 5px 4px; }
+  .gnode.added { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-dim); }
+  .gnode.added .nd { background: var(--green); }
+  .gnode.removed { border-color: rgba(248,81,73,0.65); border-style: dashed; opacity: 0.55; }
+  .gnode.removed .nd { background: var(--red); }
+  .gnode.changed { border-color: var(--amber); box-shadow: 0 0 0 3px var(--amber-dim); }
+  .gnode.changed .nd { background: var(--amber); }
+  .rewired { position: absolute; right: 14px; top: 12px; width: 250px; background: rgba(13,17,23,0.94); border: 1px solid var(--border); border-radius: 10px; padding: 11px 13px; z-index: 15; }
+  .rewired .rw-h { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.11em; text-transform: uppercase; color: var(--muted); margin-bottom: 7px; }
+  .rewired .rw-r { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 12px; padding: 3px 2px; color: var(--text); }
+  .rewired .rw-r .d-add { color: var(--green); } .rewired .rw-r .d-rem { color: var(--red); }
+
+  /* ---------- decision cards ---------- */
+  .dcards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+  .dcard { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; display: flex; flex-direction: column; }
+  .dcard .d-n { font-family: var(--mono); font-size: 11.5px; color: var(--cyan); margin-bottom: 10px; letter-spacing: 0.1em; }
+  .dcard h3 { font-size: 19px; margin-bottom: 10px; line-height: 1.3; }
+  .dcard p { font-size: 14.5px; color: var(--muted); line-height: 1.6; }
+  .dcard p b { color: var(--text); }
+  .dcard .d-ev { margin-top: auto; padding-top: 14px; }
+
+  /* ---------- build plan ---------- */
+  .timeline { display: flex; gap: 0; align-items: stretch; margin-bottom: 26px; }
+  .tl-stage { border: 1px solid var(--border); background: var(--panel); padding: 20px 24px; position: relative; }
+  .tl-stage:first-child { border-radius: 14px 0 0 14px; }
+  .tl-stage:last-child { border-radius: 0 14px 14px 0; }
+  .tl-stage + .tl-stage { border-left: none; }
+  .tl-stage .t-days { font-family: var(--head); font-size: 30px; font-weight: 700; color: var(--cyan); }
+  .tl-stage .t-name { font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .tl-stage ul { list-style: none; margin-top: 12px; }
+  .tl-stage li { font-size: 14px; color: var(--text); padding: 3.5px 0 3.5px 20px; position: relative; line-height: 1.45; }
+  .tl-stage li::before { content: "▸"; position: absolute; left: 0; color: var(--violet); }
+  .tl-stage li.muted-li { color: var(--muted); }
+  .tl-stage.spike { background: linear-gradient(180deg, var(--amber-dim), var(--panel)); border-color: rgba(210,153,34,0.55); }
+  .tl-stage.spike .t-days { color: var(--amber); }
+  .tl-gate { flex: 0 0 90px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-family: var(--mono); font-size: 10.5px; color: var(--amber); text-align: center; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--bg); }
+  .tl-gate .g-arrow { font-size: 22px; }
+  .codelist { font-family: var(--mono); font-size: 13px; line-height: 2.15; }
+  .codelist .c-row { display: flex; gap: 14px; align-items: baseline; }
+  .codelist .c-what { color: var(--cyan); min-width: 430px; }
+  .codelist .c-why { color: var(--muted); font-size: 12.5px; }
+
+  /* ---------- critics ---------- */
+  .quote { border-left: 3px solid var(--red); padding: 4px 0 4px 22px; font-size: 21px; font-style: italic; color: var(--text); line-height: 1.55; font-family: var(--serif); }
+  .quote .who { display: block; font-style: normal; font-family: var(--mono); font-size: 12px; color: var(--muted); margin-top: 10px; }
+  .fixsteps { counter-reset: fx; list-style: none; margin-top: 14px; }
+  .fixsteps li { counter-increment: fx; position: relative; padding: 11px 0 11px 52px; border-bottom: 1px solid var(--border); font-size: 15px; line-height: 1.55; }
+  .fixsteps li:last-child { border-bottom: none; }
+  .fixsteps li::before { content: counter(fx); position: absolute; left: 0; top: 10px; width: 32px; height: 32px; border-radius: 50%; background: var(--violet-dim); border: 1px solid rgba(188,140,255,0.4); color: var(--violet); font-family: var(--head); font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .fixsteps li b { color: var(--cyan); }
+
+  /* ---------- verdict ---------- */
+  .verdict { background: linear-gradient(90deg, var(--panel), #171326 55%, #0f2027); border: 1px solid rgba(188,140,255,0.35); border-radius: 18px; padding: 36px 44px; display: grid; grid-template-columns: 1.35fr 1fr; gap: 60px; align-items: center; }
+  .scores { display: grid; grid-template-columns: repeat(5, 1fr); gap: 26px; }
+  .score .s-k { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .score .s-k b { color: var(--text); font-size: 15px; display: block; font-family: var(--head); }
+  .score .s-v { font-family: var(--head); font-size: 34px; font-weight: 700; color: var(--cyan); }
+  .score .s-v span { font-size: 16px; color: var(--muted); font-weight: 500; }
+  .segbar { display: flex; gap: 4px; margin-top: 9px; }
+  .segbar i { flex: 1; height: 8px; border-radius: 3px; background: var(--panel2); border: 1px solid var(--border); }
+  .segbar i.f { background: linear-gradient(90deg, var(--violet), var(--cyan)); border-color: transparent; }
+  .buildorder { text-align: left; }
+  .buildorder .bo-k { font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--violet); }
+  .buildorder .bo-v { font-family: var(--head); font-size: 44px; font-weight: 700; line-height: 1.15; margin: 8px 0; }
+  .buildorder .bo-v .th { color: var(--cyan); }
+  .buildorder .bo-d { font-size: 15.5px; color: var(--muted); line-height: 1.6; }
+  .buildorder .bo-d b { color: var(--text); }
+  footer { margin-top: 90px; border-top: 1px solid var(--border); padding-top: 24px; font-family: var(--mono); font-size: 12px; color: var(--muted); line-height: 2; }
+  footer .f-h { color: var(--violet); letter-spacing: 0.1em; text-transform: uppercase; font-size: 11px; }
+</style>
+</head>
+<body>
+<nav class="nav" aria-label="report sections">
+  <div class="nav-title">drc atlas</div>
+  <a href="#hero" class="active">00 · pitch</a>
+  <a href="#moment">01 · the moment</a>
+  <a href="#how">02 · how it works</a>
+  <a href="#mockup">03 · the mockup</a>
+  <a href="#journey">04 · the journey</a>
+  <a href="#decisions">05 · decisions</a>
+  <a href="#plan">06 · build plan</a>
+  <a href="#critics">07 · the critics</a>
+  <a href="#verdict">08 · verdict</a>
+  <div class="nav-foot">report 2 / 5<br>2026-07-07<br>single-file · no js libs</div>
+</nav>
+
+<div class="canvas">
+
+<!-- ============================== ACT 1 · HERO ============================== -->
+<section class="hero" id="hero">
+  <svg class="constellation" width="720" height="430" viewBox="0 0 720 430" fill="none" aria-hidden="true">
+    <line x1="80" y1="90" x2="240" y2="160" stroke="#bc8cff" stroke-opacity="0.35"/>
+    <line x1="240" y1="160" x2="410" y2="80" stroke="#bc8cff" stroke-opacity="0.35"/>
+    <line x1="240" y1="160" x2="330" y2="300" stroke="#76e3ea" stroke-opacity="0.3"/>
+    <line x1="330" y1="300" x2="530" y2="250" stroke="#bc8cff" stroke-opacity="0.35"/>
+    <line x1="410" y1="80" x2="530" y2="250" stroke="#76e3ea" stroke-opacity="0.3"/>
+    <line x1="530" y1="250" x2="660" y2="120" stroke="#bc8cff" stroke-opacity="0.3"/>
+    <line x1="330" y1="300" x2="180" y2="380" stroke="#76e3ea" stroke-opacity="0.25"/>
+    <line x1="530" y1="250" x2="620" y2="370" stroke="#bc8cff" stroke-opacity="0.25"/>
+    <circle cx="80" cy="90" r="5" fill="#bc8cff"/>
+    <circle cx="240" cy="160" r="9" fill="#76e3ea"/>
+    <circle cx="240" cy="160" r="15" fill="none" stroke="#76e3ea" stroke-opacity="0.5"/>
+    <circle cx="410" cy="80" r="6" fill="#bc8cff"/>
+    <circle cx="330" cy="300" r="7" fill="#bc8cff"/>
+    <circle cx="530" cy="250" r="8" fill="#f0883e"/>
+    <circle cx="660" cy="120" r="4" fill="#8b949e"/>
+    <circle cx="180" cy="380" r="4" fill="#8b949e"/>
+    <circle cx="620" cy="370" r="5" fill="#76e3ea"/>
+  </svg>
+  <div class="brand">DRC VIZ FAMILY · REPORT 2 OF 5 · USE CASE: GRAPH &amp; KNOWLEDGE EXPLORER</div>
+  <div class="hero-grid">
+    <div>
+      <h1>drc <span class="vio">atlas</span></h1>
+      <div class="sub"><b>Search first</b>, expand on demand, <b>evidence one click away</b>.</div>
+      <p class="lede">A local, search-first explorer over per-topic Cognee knowledge graphs. Text answers stay
+      primary — <code>drc query</code> is unchanged — the atlas is the <em>verification, orientation, and serendipity
+      layer</em> around them: what does this graph know, what is the evidence behind any node, what is thin
+      or missing, and what did the last cognify change. Never a hairball; the canvas holds only what you asked for.</p>
+      <div class="killer">
+        <span class="k-label">Verified<br>live</span>
+        <span class="k-fact"><span class="hl">GET /datasets/{id}/graph</span> → 200 · <span class="hl">3,033 nodes / 13,189 edges</span> · one call, no pagination</span>
+        <span class="ev cy">[R8: verified live]</span>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="n">5.9&thinsp;MB</div><div class="l"><b>full graph JSON</b> for the mid-size dataset — returned in seconds, cached as a local snapshot</div></div>
+      <div class="stat"><div class="n vio">6</div><div class="l"><b>node-set lenses free</b> — <span class="mono">docs · distilled · content · synthesis · log · report</span> already tagged in every export</div></div>
+      <div class="stat"><div class="n">17</div><div class="l"><b>live search types</b> on the hosted tenant; <span class="mono">verbose: true</span> returns the answer's own triplets for scene overlay</div></div>
+      <div class="stat"><div class="n vio">1 click</div><div class="l"><b>provenance</b> — Entity → chunk → document → source record → content file, with named confidence at every hop</div></div>
+      <div class="stat"><div class="n">2 + 5&thinsp;d</div><div class="l"><b>honest budget</b> — v0 in 2 days (incl. the local pre-cognify layer), v1 in +5; re-budgeted after critique</div></div>
+      <div class="stat"><div class="n vio">MIT</div><div class="l"><b>sigma.js + graphology</b> stack — Bloom-class scene rendering, zero license drag, WebGL at 13k edges</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== ACT 2 · THE MOMENT ============================== -->
+<section id="moment">
+  <div class="sec-head">
+    <span class="kicker">Act 01</span>
+    <h2>The moment this exists for</h2>
+    <div class="rule"></div>
+    <span class="aside">cognify just finished — now what does it actually know?</span>
+  </div>
+  <div class="grid3">
+    <div class="panel">
+      <h3><span class="h-ic">Q?</span>The five questions, ranked</h3>
+      <p class="dim" style="font-size:14.5px; margin-bottom:10px;">Every design element traces back to one of these. Anything that serves none of them was cut.</p>
+      <ol class="qlist">
+        <li><div><div class="q">What does this graph know about X?</div></div><div class="a">omnibox → ego scene + evidence</div></li>
+        <li><div><div class="q">What's the evidence behind this node or edge?</div></div><div class="a">provenance breadcrumb</div></li>
+        <li><div><div class="q">What are the major themes — and what's thin?</div></div><div class="a">community overview + gap cards</div></li>
+        <li><div><div class="q">How do X and Y connect?</div></div><div class="a">path mode, straight strand</div></li>
+        <li><div><div class="q">What did the last cognify change?</div></div><div class="a">scene-scoped diff</div></li>
+      </ol>
+      <div style="margin-top:14px;"><span class="ev">[Atlas §1]</span> <span class="ev">[R3: search-first]</span></div>
+    </div>
+    <div class="panel anti">
+      <h3>The anti-goal: the hairball</h3>
+      <div class="hairball">
+        <svg width="100%" height="100%" viewBox="0 0 640 190" preserveAspectRatio="none" id="hb-svg"></svg>
+        <div class="hb-label">3,033 nodes · 13,189 edges · rendered all at once = noise</div>
+      </div>
+      <p>Global force-layout renders fail past ~200 nodes. <b>Obsidian's graph view</b> is the canonical
+      cautionary tale: the most famous personal knowledge graph in the world, universally praised as
+      beautiful — and near-universally admitted to be <i>useless for actual work</i>. A screenshot generator,
+      not a thinking tool. drc's mid-size dataset is 15× past the legibility cliff.</p>
+      <p>So the atlas takes Bloom's rule as law: <b>the canvas holds only what was searched or expanded</b>.
+      Overview is meta-nodes, never raw nodes. A beautiful global render is an explicit non-goal, as is 3D.</p>
+      <div style="margin-top:12px;"><span class="ev">[R3: hairball anti-goal]</span> <span class="ev">[CS2: Bloom scene model]</span> <span class="ev">[Atlas P1]</span></div>
+    </div>
+    <div class="panel">
+      <h3>Why the built-in visualize isn't enough</h3>
+      <p style="font-size:15px;">Cognee ships <code>GET /visualize</code> — a self-contained d3.v7 force page (verified live, 384&thinsp;KB).
+      CS2 read its source. The <b>complete</b> interaction list:</p>
+      <div class="interaction-list">
+        <div class="yes">pan / zoom &nbsp;<span class="dim">(d3.zoom on the whole container)</span></div>
+        <div class="yes">drag a node &nbsp;<span class="dim">(pins during drag, releases after)</span></div>
+        <div class="yes">hover tooltip = <span style="color:var(--orange)">JSON.stringify(d)</span> &nbsp;<span class="dim">(raw props blob)</span></div>
+        <div class="no">search&ensp;·&ensp;filter&ensp;·&ensp;click-to-inspect&ensp;·&ensp;type toggles&ensp;·&ensp;legend</div>
+        <div class="no">expand-from-selection&ensp;·&ensp;clusters&ensp;·&ensp;gaps&ensp;·&ensp;saved views</div>
+        <div class="no">provenance navigation of any kind</div>
+      </div>
+      <p style="font-size:15px;">At drc scale it renders every node with a 5px label and every one of 13k edge labels in SVG
+      per tick — a hairball <i>and</i> a frame-rate disaster. What it does prove: cognify ran, types attach, the graph
+      exists. The atlas inherits its one good idea — the type-color convention — and replaces everything else.</p>
+      <div style="margin-top:12px;"><span class="ev">[CS2: source-verified]</span> <span class="ev cy">[R8: /visualize live 200]</span></div>
+    </div>
+  </div>
+</section>
+<!-- ============================== ACT 3 · HOW IT WORKS ============================== -->
+<section id="how">
+  <div class="sec-head">
+    <span class="kicker">Act 02</span>
+    <h2>How it works</h2>
+    <div class="rule"></div>
+    <span class="aside">three ideas: scenes, two data layers, a provenance chain with named confidence</span>
+  </div>
+  <div class="grid2" style="grid-template-columns: 1.15fr 1fr; margin-bottom: 26px;">
+    <div class="panel">
+      <h3><span class="h-ic">01</span>The scene model — never render what wasn't asked for</h3>
+      <p>Borrowed whole from Neo4j Bloom, the reference design for search-first exploration: a <b>scene</b> contains
+      only what you searched for or expanded to. Landing state is an omnibox over an <b>overview of meta-nodes</b>
+      (EntityTypes and Louvain communities sized by member count, colored by dominant node set) — available from
+      <code>/schema/inventory</code> before a full export even exists. The raw graph is never the first paint.</p>
+      <div class="flowline">
+        <div class="flow-step"><div class="fs-t">Search</div><div class="fs-d">typeahead over labels + descriptions; Enter materializes the hit</div></div>
+        <div class="flow-step"><div class="fs-t">Scene</div><div class="fs-d">hit + ranked 1-hop context, DOI-capped at ~30–50 nodes, focus pinned center, radial layout</div></div>
+        <div class="flow-step"><div class="fs-t">Expand</div><div class="fs-d">right-click a frontier node → all / by edge label / entities-only (skip plumbing)</div></div>
+        <div class="flow-step"><div class="fs-t">Inspect</div><div class="fs-d">click → description, weights, edges by label, the Sources breadcrumb</div></div>
+        <div class="flow-step"><div class="fs-t">Share</div><div class="fs-d">scene serialized to the URL hash — every view is a pasteable artifact</div></div>
+      </div>
+      <p><b>Scenes are queries, not id lists</b> <span class="ev">[05: accepted]</span> — the URL hash stores
+      <code>{search, expansions:[(label,type,edge)], lenses, camera}</code> and re-resolves on load. Cognee node ids are
+      not stable across cognify runs; a saved scene made of ids would rot in a week. A saved scene made of
+      <i>queries</i> survives re-cognify, and a missing label degrades to a note, never a broken link.</p>
+      <p>DocumentChunk / TextSummary / TextDocument nodes — ~40% of the graph — are provenance plumbing, not knowledge.
+      They are <b>hidden from the canvas by default</b> and surfaced as the inspector's Sources breadcrumb instead.
+      <span class="ev">[Atlas P2]</span> <span class="ev">[CS2 mapping]</span></p>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:26px;">
+      <div class="panel layercard">
+        <div class="layer-badge">Layer 0 · local co-occurrence — the pre-cognify preview</div>
+        <h3 style="margin-top:6px;">Works before Cognee ever runs</h3>
+        <p style="font-size:15px;">Built from <code>distilled/*.json</code> already on disk: entities that co-occur in the same
+        distilled record get an edge. Free, instant, offline — and it is the atlas's <b>empty state</b>: same scene UI,
+        same omnibox, a banner reading <span class="mono" style="color:var(--cyan); font-size:13px;">"local preview — cognify to get the full graph."</span>
+        The explorer is useful on day one of a topic, not just after a paid cognify. <span class="ev">[05: D5 accepted]</span></p>
+      </div>
+      <div class="panel layercard l1">
+        <div class="layer-badge">Layer 1 · Cognee snapshot — the enhanced mode</div>
+        <h3 style="margin-top:6px;">One GET, cached as a local snapshot</h3>
+        <p style="font-size:15px;"><code>GET /datasets/{id}/graph</code> → <code>viz/graph-&lt;n&gt;.json</code>, gzipped and
+        property-stripped, written by the "refresh ⟳" button or <code>drc ingest --snapshot</code>. FA2 layout runs
+        <b>client-side in a web worker</b> on first load; positions persist back into the snapshot file, so spatial memory
+        survives reloads — overview and diff both consume the same stored positions. <span class="ev cy">[R8: verified live]</span>
+        <span class="ev">[R2: positions persisted]</span> <span class="ev">[05: FA2 resolved]</span></p>
+        <p style="font-size:15px;">Search is the only thing that ever costs credits — and only on explicit clicks in the
+        workbench, never on polling. <span class="ev">[Atlas P5]</span></p>
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <h3><span class="h-ic">02</span>The provenance chain — every claim walks home</h3>
+    <p style="max-width:1800px;">Question #2 is "what's the evidence behind this node?" — and it is the feature the whole pitch stands on.
+    Cognee's chain ends at TextDocument; drc's workspace begins at <code>ingested.json</code>. The atlas joins them server-side
+    in one shared <code>provenance.py</code> chassis service (the dossier consumes the same service, so the two surfaces can never disagree).
+    <span class="ev">[05: one provenance service]</span></p>
+    <div class="provchain">
+      <div class="pc-node"><div class="pc-t">Entity</div><div class="pc-s">field_validator · what the graph claims</div></div>
+      <div class="pc-arrow"><span class="pa-lbl">mentioned_in</span><div class="pa-line"></div></div>
+      <div class="pc-node"><div class="pc-t">DocumentChunk</div><div class="pc-s">chunk#12 · the supporting text</div></div>
+      <div class="pc-arrow"><span class="pa-lbl">made_from</span><div class="pa-line"></div></div>
+      <div class="pc-node"><div class="pc-t">TextDocument</div><div class="pc-s">what Cognee ingested · <span class="mono" style="font-size:11px;">source_content_hash</span></div></div>
+      <div class="pc-join"><div class="pj-box">THE JOIN<br>hash ↔ manifest digest<br>2-hour spike decides</div></div>
+      <div class="pc-node drc"><div class="pc-t">ingested.json</div><div class="pc-s">drc push manifest · digests of pushed text</div></div>
+      <div class="pc-arrow"><span class="pa-lbl">source_id</span><div class="pa-line"></div></div>
+      <div class="pc-node drc"><div class="pc-t">sources.jsonl</div><div class="pc-s">src a3f92c1b04de · URL, found_via, status</div></div>
+      <div class="pc-arrow"><span class="pa-lbl">content_path</span><div class="pa-line"></div></div>
+      <div class="pc-node drc"><div class="pc-t">content file</div><div class="pc-s">opens in a slide-over, chunk highlighted</div></div>
+    </div>
+    <div style="display:flex; gap:36px; margin-top:6px; font-family:var(--mono); font-size:11.5px;">
+      <span style="color:var(--violet);">■ Cognee graph side</span>
+      <span style="color:var(--cyan);">■ drc workspace side</span>
+      <span class="dim">join failures degrade to a labeled state and log to a debug panel — never guessed silently [Atlas P3]</span>
+    </div>
+    <div class="confvocab">
+      <div class="conf exact"><div class="c-name">exact</div><div class="c-d">content hash matches a manifest digest — the chain is a dict lookup; full breadcrumb, chunk highlighted in source</div></div>
+      <div class="conf fuzzy"><div class="c-name">fuzzy(ratio)</div><div class="c-d">stable-key re-hash match (docs / distilled / content) with the match ratio shown — breadcrumb rendered, labeled</div></div>
+      <div class="conf revun"><div class="c-name">revision-unknown</div><div class="c-d">synthesis / log / report artifacts that were re-pushed since: "ingested artifact (revision unknown)"</div></div>
+      <div class="conf unres"><div class="c-name">unresolved</div><div class="c-d">no join found — chain rendered as far as it resolves; miss logged; orphan documents labeled "superseded revision" and excluded from counts by default</div></div>
+    </div>
+    <div style="margin-top:16px;"><span class="ev">[05: ordered provenance plan]</span> <span class="ev">[Atlas §6]</span> <span class="ev cy">[R8: source_content_hash present in export properties]</span></div>
+  </div>
+</section>
+<!-- ============================== ACT 4 · THE MOCKUP ============================== -->
+<section id="mockup">
+  <div class="sec-head">
+    <span class="kicker">Act 03</span>
+    <h2>The tool, at 1:1</h2>
+    <div class="rule"></div>
+    <span class="aside">the pydantic tool graph · scene: "custom validators" · every element numbered below</span>
+  </div>
+  <div class="mockwrap">
+    <div class="mockup">
+      <div class="mk-chrome">
+        <div class="mk-dots"><span></span><span></span><span></span></div>
+        <div class="mk-url">localhost:8642<span class="u-hl">/w/pydantic/atlas</span>#scene=q:custom+validators;x:model_validator.Entity.configured_by;lens:docs,synthesis</div>
+        <span class="mk-app">drc dash · atlas</span>
+      </div>
+      <div class="mk-topbar">
+        <div class="omnibox">
+          <span class="om-ic">⌕</span>
+          <span class="om-q">custom validators</span><span class="om-cursor"></span>
+          <span class="om-hint">↵ scene · esc dismiss</span>
+        </div>
+        <div class="chiprow">
+          <span class="cq">evidence for &lt;entity&gt;</span>
+          <span class="cq">connect &lt;a&gt; ↔ &lt;b&gt;</span>
+          <span class="cq">what's in &lt;community&gt;</span>
+          <span class="cq">from source &lt;id&gt;</span>
+          <span class="cq">orphans &amp; gaps</span>
+        </div>
+        <div class="lensbar">
+          <span class="lens-lbl">lenses</span>
+          <span class="lens on" data-lens>docs <span class="cnt">812</span></span>
+          <span class="lens" data-lens>distilled <span class="cnt">341</span></span>
+          <span class="lens" data-lens>content <span class="cnt">198</span></span>
+          <span class="lens on" data-lens>synthesis <span class="cnt">176</span></span>
+          <span class="lens" data-lens>log <span class="cnt">54</span></span>
+          <span class="lens" data-lens>report <span class="cnt">88</span></span>
+        </div>
+        <span class="mk-snap">snapshot #4 · 2026-07-07 ▾</span>
+        <span class="mk-btn">diff <span style="color:var(--muted)">d</span></span>
+        <span class="mk-btn">refresh ⟳</span>
+      </div>
+      <div class="mk-body">
+        <!-- analytics rail -->
+        <div class="mk-rail">
+          <div>
+            <div class="rail-h">communities · louvain over entity–entity</div>
+            <div class="comm"><span class="swatch" style="background:#bc8cff"></span><span class="c-n">validation</span><span class="c-bar"><i style="width:100%; background:#bc8cff"></i></span><span class="c-cnt">34</span></div>
+            <div class="comm"><span class="swatch" style="background:#76e3ea"></span><span class="c-n">serialization</span><span class="c-bar"><i style="width:82%; background:#76e3ea"></i></span><span class="c-cnt">28</span></div>
+            <div class="comm"><span class="swatch" style="background:#f0883e"></span><span class="c-n">config &amp; model_config</span><span class="c-bar"><i style="width:62%; background:#f0883e"></i></span><span class="c-cnt">21</span></div>
+            <div class="comm"><span class="swatch" style="background:#3fb950"></span><span class="c-n">types &amp; coercion</span><span class="c-bar"><i style="width:56%; background:#3fb950"></i></span><span class="c-cnt">19</span></div>
+            <div class="comm"><span class="swatch" style="background:#d29922"></span><span class="c-n">json schema</span><span class="c-bar"><i style="width:41%; background:#d29922"></i></span><span class="c-cnt">14</span></div>
+            <div class="comm"><span class="swatch" style="background:#8b949e"></span><span class="c-n">usage &amp; integration</span><span class="c-bar"><i style="width:32%; background:#8b949e"></i></span><span class="c-cnt">11</span></div>
+          </div>
+          <div>
+            <div class="rail-h">top brokers · betweenness</div>
+            <div class="broker"><span class="b-n">BaseModel</span><span class="b-bar"><i style="width:96%"></i></span><span class="b-v">.41</span></div>
+            <div class="broker"><span class="b-n">field_validator</span><span class="b-bar"><i style="width:73%"></i></span><span class="b-v">.31</span></div>
+            <div class="broker"><span class="b-n">Annotated</span><span class="b-bar"><i style="width:58%"></i></span><span class="b-v">.25</span></div>
+            <div class="broker"><span class="b-n">model_config</span><span class="b-bar"><i style="width:44%"></i></span><span class="b-v">.19</span></div>
+            <div class="broker"><span class="b-n">TypeAdapter</span><span class="b-bar"><i style="width:36%"></i></span><span class="b-v">.15</span></div>
+          </div>
+          <div>
+            <div class="rail-h"><span class="warn">⚠</span> gaps &amp; health</div>
+            <div class="gapcard">
+              <div class="g-t"><span class="g-ic">◍◌◍</span> validation ↮ serialization</div>
+              <div class="g-d">Two well-developed communities share <b>zero</b> chunk co-mentions. The docs harvest never covered <span class="mono">model_serializer</span> × validator interaction.</div>
+              <button class="g-btn">draft harvest query ⧉</button>
+            </div>
+            <div class="gapcard">
+              <div class="g-t"><span class="g-ic">◌</span> 7 orphan entities</div>
+              <div class="g-d"><span class="mono">PlainSerializer, WrapSerializer, …</span> — extracted once, connected to nothing but their type.</div>
+              <button class="g-btn">draft harvest query ⧉</button>
+            </div>
+            <div class="gapcard" style="background:var(--panel2); border-color:var(--border);">
+              <div class="g-t" style="color:var(--muted)">◑ 41 single-source claims</div>
+              <div class="g-d">edges backed by exactly one chunk render thin on the canvas</div>
+            </div>
+          </div>
+          <div class="rail-foot">dataset pydantic-tool-graph<br>3,033 nodes · 13,189 edges · 6 sets<br>snapshot #4 · positions persisted ✓</div>
+        </div>
+        <!-- scene canvas -->
+        <div class="mk-canvas">
+          <div class="scene-hud">
+            <span class="h-k">scene</span> <span class="h-v">"custom validators"</span> · 15 shown / 3,033 total<br>
+            <span class="h-k">expanded</span> <span class="h-v">model_validator → configured_by</span> · radial ego · doi cap 50
+          </div>
+          <div class="scene-legend">
+            <span class="lg"><span class="dotv" style="background:var(--orange)"></span> Entity</span>
+            <span class="lg"><span class="dotv" style="background:var(--violet)"></span> EntityType</span>
+            <span class="lg"><span class="dotv" style="border:1.5px dashed var(--muted); background:transparent;"></span> frontier</span>
+            <span class="lg"><span class="dotv" style="background:var(--cyan)"></span> answer overlay</span>
+            <span class="lg" style="color:var(--muted)">thin edge = single source</span>
+          </div>
+          <svg class="edges" viewBox="0 0 1900 940" preserveAspectRatio="none">
+            <line x1="950" y1="430" x2="680"  y2="590" stroke="#8b949e" stroke-opacity="0.55" stroke-width="2.6" vector-effect="non-scaling-stroke"/>
+            <line x1="950" y1="430" x2="1180" y2="620" stroke="#8b949e" stroke-opacity="0.55" stroke-width="2.2" vector-effect="non-scaling-stroke"/>
+            <line x1="950" y1="430" x2="1250" y2="250" stroke="#76e3ea" stroke-opacity="0.85" stroke-width="2.8" vector-effect="non-scaling-stroke"/>
+            <line x1="950" y1="430" x2="1330" y2="470" stroke="#8b949e" stroke-opacity="0.55" stroke-width="2.2" vector-effect="non-scaling-stroke"/>
+            <line x1="950" y1="430" x2="430"  y2="430" stroke="#8b949e" stroke-opacity="0.4"  stroke-width="1"   vector-effect="non-scaling-stroke"/>
+            <line x1="640" y1="280" x2="950"  y2="430" stroke="#8b949e" stroke-opacity="0.55" stroke-width="2.2" vector-effect="non-scaling-stroke"/>
+            <line x1="950" y1="130" x2="950"  y2="430" stroke="#8b949e" stroke-opacity="0.55" stroke-width="2.6" vector-effect="non-scaling-stroke"/>
+            <line x1="950" y1="130" x2="1250" y2="250" stroke="#8b949e" stroke-opacity="0.4"  stroke-width="1"   vector-effect="non-scaling-stroke"/>
+            <line x1="1250" y1="250" x2="1520" y2="150" stroke="#76e3ea" stroke-opacity="0.85" stroke-width="2.8" vector-effect="non-scaling-stroke"/>
+            <line x1="1250" y1="250" x2="1640" y2="320" stroke="#8b949e" stroke-opacity="0.4" stroke-width="1"   vector-effect="non-scaling-stroke"/>
+            <line x1="300" y1="640" x2="950"  y2="430" stroke="#8b949e" stroke-opacity="0.45" stroke-width="1.6" stroke-dasharray="7 5" vector-effect="non-scaling-stroke"/>
+            <line x1="1180" y1="620" x2="1450" y2="740" stroke="#8b949e" stroke-opacity="0.45" stroke-width="1.6" vector-effect="non-scaling-stroke"/>
+            <line x1="640" y1="280" x2="380"  y2="90"  stroke="#8b949e" stroke-opacity="0.4"  stroke-width="1"   vector-effect="non-scaling-stroke"/>
+            <line x1="330" y1="200" x2="640"  y2="280" stroke="#8b949e" stroke-opacity="0.5"  stroke-width="1.8" vector-effect="non-scaling-stroke"/>
+            <line x1="560" y1="780" x2="680"  y2="590" stroke="#8b949e" stroke-opacity="0.4"  stroke-width="1"   vector-effect="non-scaling-stroke"/>
+            <line x1="1250" y1="250" x2="1180" y2="620" stroke="#8b949e" stroke-opacity="0.4" stroke-width="1"   vector-effect="non-scaling-stroke"/>
+          </svg>
+          <!-- edge labels -->
+          <span class="elabel" style="left:42.9%; top:54.3%;">applied_to · 3</span>
+          <span class="elabel" style="left:56.1%; top:55.9%;">is_a</span>
+          <span class="elabel ghosthl" style="left:57.9%; top:36.2%;">runs_before</span>
+          <span class="elabel" style="left:60.5%; top:44.5%;">raises</span>
+          <span class="elabel" style="left:36.3%; top:43.2%;">receives · 1</span>
+          <span class="elabel" style="left:41.8%; top:37.8%;">alternative_to</span>
+          <span class="elabel" style="left:50%; top:29.8%;">implemented_via</span>
+          <span class="elabel" style="left:57.9%; top:20.2%;">implemented_via · 1</span>
+          <span class="elabel ghosthl" style="left:72.9%; top:21.3%;">configured_by</span>
+          <span class="elabel" style="left:76.1%; top:30.3%;">configured_by · 1</span>
+          <span class="elabel" style="left:32.9%; top:56.9%;">superseded_by</span>
+          <span class="elabel" style="left:69.2%; top:72.3%;">subtype_of</span>
+          <span class="elabel" style="left:26.8%; top:19.7%;">uses · 1</span>
+          <span class="elabel" style="left:25.5%; top:25.5%;">expressed_as</span>
+          <span class="elabel" style="left:32.6%; top:72.9%;">validates_like · 1</span>
+          <span class="elabel" style="left:63.9%; top:46.3%;">is_a · 1</span>
+          <!-- nodes -->
+          <div class="gnode focus" style="left:50%; top:45.7%;"><span class="nd"></span>field_validator</div>
+          <div class="gnode ghosthl" style="left:65.8%; top:26.6%;"><span class="nd"></span>model_validator</div>
+          <div class="gnode" style="left:35.8%; top:62.8%;"><span class="nd"></span>BaseModel</div>
+          <div class="gnode etype" style="left:62.1%; top:66%;"><span class="nd"></span>Decorator</div>
+          <div class="gnode" style="left:33.7%; top:29.8%;"><span class="nd"></span>Annotated validators</div>
+          <div class="gnode" style="left:50%; top:13.8%;"><span class="nd"></span>custom validation</div>
+          <div class="gnode frontier" style="left:22.6%; top:45.7%;"><span class="nd"></span>ValidationInfo<span class="plus">+4</span></div>
+          <div class="gnode" style="left:70%; top:50%;"><span class="nd"></span>ValidationError</div>
+          <div class="gnode ghosthl" style="left:80%; top:16%;"><span class="nd"></span>mode="before"</div>
+          <div class="gnode frontier" style="left:86.3%; top:34%;"><span class="nd"></span>mode="wrap"<span class="plus">+2</span></div>
+          <div class="gnode etype frontier" style="left:76.3%; top:78.7%;"><span class="nd"></span>Function<span class="plus">+38</span></div>
+          <div class="gnode frontier" style="left:15.8%; top:68.1%;"><span class="nd"></span>@validator (legacy)<span class="plus">+3</span></div>
+          <div class="gnode frontier" style="left:17.4%; top:21.3%;"><span class="nd"></span>field-level constraints<span class="plus">+6</span></div>
+          <div class="gnode frontier" style="left:29.5%; top:83%;"><span class="nd"></span>TypeAdapter<span class="plus">+9</span></div>
+          <div class="gnode frontier" style="left:20%; top:9.6%;"><span class="nd"></span>AfterValidator<span class="plus">+2</span></div>
+          <div class="scene-footer"><span class="k">⇧esc</span> clear scene · <span class="k">right-click</span> expand · <span class="k">d</span> diff · <span class="k">q</span> workbench · scene url copied ✓</div>
+        </div>
+        <!-- inspector -->
+        <div class="mk-inspector">
+          <div class="insp-head">
+            <div class="i-name">field_validator</div>
+            <div class="i-meta">
+              <span class="ibadge ent">Entity</span>
+              <span class="ibadge" style="color:var(--violet); border-color:rgba(188,140,255,0.45); background:var(--violet-dim);">community: validation</span>
+              <span class="ibadge set">docs</span>
+              <span class="ibadge set">synthesis</span>
+            </div>
+          </div>
+          <div class="insp-desc">Decorator that registers a custom validation function for one or more model fields; runs during field validation and can transform or reject the value before model assembly.</div>
+          <div class="insp-kv">
+            <div class="kv"><span class="k">importance_weight</span><span class="v">0.87</span></div>
+            <div class="kv"><span class="k">topological_rank</span><span class="v">12</span></div>
+            <div class="kv"><span class="k">degree / btw</span><span class="v">11 / .31</span></div>
+          </div>
+          <div class="insp-sec">
+            <div class="s-h">edges by label</div>
+            <div class="edgegroup"><span class="eg-l">applied_to</span><span class="eg-c">3 ▸</span></div>
+            <div class="edgegroup"><span class="eg-l">runs_before</span><span class="eg-c">1 ▸</span></div>
+            <div class="edgegroup"><span class="eg-l">alternative_to</span><span class="eg-c">2 ▸</span></div>
+            <div class="edgegroup"><span class="eg-l">raises</span><span class="eg-c">1 ▸</span></div>
+            <div class="edgegroup"><span class="eg-l">superseded_by ←</span><span class="eg-c">1 ▸</span></div>
+          </div>
+          <div class="insp-sec">
+            <div class="s-h">sources · provenance</div>
+            <div class="crumb">
+              <span class="cr">Entity</span><span class="sep">→</span>
+              <span class="cr">chunk#12</span><span class="sep">→</span>
+              <span class="cr">validators.md <span class="dim">(docs)</span></span><span class="sep">→</span>
+              <span class="cr src">src a3f92c1b04de</span>
+              <span class="cconf exact">exact</span>
+            </div>
+            <div class="crumb" style="margin-top:6px;">
+              <span class="cr">Entity</span><span class="sep">→</span>
+              <span class="cr">chunk#31</span><span class="sep">→</span>
+              <span class="cr">synthesis/validation.md</span>
+              <span class="cconf revun">revision unknown</span>
+            </div>
+            <span class="opencontent">open content ▸ chunk highlighted</span>
+          </div>
+          <div class="insp-sec">
+            <div class="s-h">raw json ▾</div>
+            <div class="rawjson">{ <span class="jk">"belongs_to_set"</span>: [<span class="js">"docs"</span>,<span class="js">"synthesis"</span>],<br>&nbsp;&nbsp;<span class="jk">"source_pipeline"</span>: <span class="js">"cognify_pipeline"</span>,<br>&nbsp;&nbsp;<span class="jk">"source_content_hash"</span>: <span class="js">"a3f92c1b04de…"</span>,<br>&nbsp;&nbsp;<span class="jk">"feedback_weight"</span>: <span class="jn">0</span>, <span class="jk">"importance_weight"</span>: <span class="jn">0.87</span> }</div>
+          </div>
+          <div style="margin-top:auto; font-family:var(--mono); font-size:11px; color:var(--muted);">ask about selection → workbench <span style="color:var(--cyan)">q</span></div>
+        </div>
+      </div>
+      <!-- workbench drawer -->
+      <div class="mk-bench">
+        <div class="bench-top">
+          <span class="b-k">query workbench <span class="key">q</span></span>
+          <span class="bench-q">how do validators interact with serialization?</span>
+          <span class="bench-cost">this session: 2 searches · 402 → CogneeCreditsError mapped</span>
+        </div>
+        <div class="bench-tabs">
+          <span class="btab on" data-btab="gc">GRAPH_COMPLETION<span class="b-state ran">● ran</span></span>
+          <span class="btab" data-btab="ch">CHUNKS<span class="b-state lazy">○ click to run</span></span>
+          <span class="btab" data-btab="su">SUMMARIES<span class="b-state lazy">○ click to run</span></span>
+        </div>
+        <div class="bench-panel on" data-bpanel="gc">
+          <div class="bp-answer">Validators and serializers are configured independently: <b>field_validator / model_validator</b> shape inbound
+          data while <b>field_serializer / model_serializer</b> shape outbound representations, and the retrieved context contains
+          <b>no edge connecting the two families</b> — mirroring the gap card. Validators run in the validation phase (with
+          <span class="mono" style="font-size:13px;">mode="before" | "after" | "wrap"</span>); serializers never see validator output directly.
+          <span class="cite">· 4 retrieved triplets overlaid on scene (cyan) · verbose: true</span></div>
+          <div class="bench-side">
+            <span class="overlay-toggle">◉ overlay triplets on scene — on</span>
+            <div class="bench-hist">
+              <div class="h-row">evidence for field_validator · CHUNKS · 09:41</div>
+              <div class="h-row">what's in "validation" · GRAPH_COMPLETION · 09:38</div>
+            </div>
+          </div>
+        </div>
+        <div class="bench-panel" data-bpanel="ch">
+          <div class="bench-lazy"><button class="runbtn">▶ run CHUNKS</button> not run yet — searches are lazy: one billed call per explicit click, never automatic. <span class="mono" style="font-size:12px;">nodeName: ["docs","synthesis"] · topK: 15</span></div>
+        </div>
+        <div class="bench-panel" data-bpanel="su">
+          <div class="bench-lazy"><button class="runbtn">▶ run SUMMARIES</button> not run yet — pre-computed TextSummary nodes for the current selection. 1 search on click.</div>
+        </div>
+      </div>
+    </div>
+    <!-- numbered callouts -->
+    <div class="callout"      style="left: 320px; top: 96px;">1</div>
+    <div class="callout vio"  style="left: 1180px; top: 96px;">2</div>
+    <div class="callout"      style="left: 2245px; top: 96px;">3</div>
+    <div class="callout vio"  style="left: 336px; top: 262px;">4</div>
+    <div class="callout"      style="left: 330px; top: 700px;">5</div>
+    <div class="callout vio"  style="left: 1740px; top: 560px;">6</div>
+    <div class="callout"      style="left: 2610px; top: 430px;">7</div>
+    <div class="callout vio"  style="left: 2888px; top: 780px;">8</div>
+    <div class="callout"      style="left: 620px; top: 1275px;">9</div>
+  </div>
+  <div class="callout-legend">
+    <div class="cl-item"><span class="cl-n">1</span><div><div class="cl-t">Omnibox + canned-query chips</div><div class="cl-d">Typeahead over labels + descriptions; the chips are Bloom-style "search phrases" — parameterized power queries for the five ranked questions. [CS2] [R3: search-first]</div></div></div>
+    <div class="cl-item vio"><span class="cl-n">2</span><div><div class="cl-t">Lens chips, derived — never hardcoded</div><div class="cl-d">Generated from <span class="mono">belongs_to_set</span> values present in the export (all six sets, counts included). Report lens dims docs plumbing: "what survived into the report." [05: accepted] [CS2: perspectives]</div></div></div>
+    <div class="cl-item"><span class="cl-n">3</span><div><div class="cl-t">Snapshot picker + diff + refresh</div><div class="cl-d">Atlas reads local <span class="mono">viz/graph-&lt;n&gt;.json</span> snapshots; refresh is the only call to Cognee's graph endpoint. <span class="mono">d</span> enters scene-scoped diff. [Atlas P5]</div></div></div>
+    <div class="cl-item vio"><span class="cl-n">4</span><div><div class="cl-t">Communities + brokers (analytics rail)</div><div class="cl-d">InfraNodus's move: the first paint is already an answer — topics with counts, junction nodes by betweenness. Click a community → "what's in" scene. [CS2]</div></div></div>
+    <div class="cl-item"><span class="cl-n">5</span><div><div class="cl-t">Gap cards → "draft harvest query"</div><div class="cl-d">Topology becomes a to-do: weakly-connected community pairs and orphans, each with a copy-button that seeds the next drc research run. A survival criterion for the whole tool. [CS2] [05]</div></div></div>
+    <div class="cl-item vio"><span class="cl-n">6</span><div><div class="cl-t">Ego scene: focus ringed, frontier hollow</div><div class="cl-d">Focus pinned center, radial layout, DOI-capped. Dashed frontier nodes carry <span class="mono">+n</span> hidden-neighbor badges; edge thickness = supporting chunk count, so single-source claims look thin. [Atlas P6]</div></div></div>
+    <div class="cl-item"><span class="cl-n">7</span><div><div class="cl-t">The provenance breadcrumb — the star</div><div class="cl-d">Entity → chunk#12 → validators.md (docs) → src a3f92c1b04de → open content, each hop clickable, confidence named at the joint. Raw-JSON disclosure kept for debugging. [Atlas §4] [CS2 mapping]</div></div></div>
+    <div class="cl-item vio"><span class="cl-n">8</span><div><div class="cl-t">Query workbench: lazy tabs + cost counter</div><div class="cl-d">One billed search per explicit tab click, never three at once; per-session cost counter; <span class="mono">verbose: true</span> triplets ghost-overlay the scene in cyan. [05: accepted] [R8: verbose verified]</div></div></div>
+    <div class="cl-item"><span class="cl-n">9</span><div><div class="cl-t">Scene HUD + keymap</div><div class="cl-d">Scene = 15 of 3,033 nodes, and says so. Esc dismisses topmost pane (family-wide keymap); ⇧Esc clears the scene; the URL hash is the scene, pasteable into notes. [05: one keymap]</div></div></div>
+  </div>
+</section>
+<!-- ============================== ACT 5 · THE JOURNEY ============================== -->
+<section id="journey">
+  <div class="sec-head">
+    <span class="kicker">Act 04</span>
+    <h2>One exploration, six frames</h2>
+    <div class="rule"></div>
+    <span class="aside">scroll right → · the CS2 pydantic walkthrough, frame by frame</span>
+  </div>
+  <div class="film">
+    <!-- F1 overview -->
+    <div class="frame">
+      <div class="frame-head"><span class="f-n">01</span><span class="f-t">Landing: overview, never the graph</span><span class="f-k">meta-nodes</span></div>
+      <div class="frame-viz">
+        <svg style="position:absolute; inset:0; width:100%; height:100%;" viewBox="0 0 780 380" preserveAspectRatio="none">
+          <line x1="240" y1="170" x2="450" y2="120" stroke="#30363d" stroke-width="6"/>
+          <line x1="240" y1="170" x2="390" y2="280" stroke="#30363d" stroke-width="3"/>
+          <line x1="450" y1="120" x2="620" y2="230" stroke="#30363d" stroke-width="1.5"/>
+          <line x1="390" y1="280" x2="620" y2="230" stroke="#30363d" stroke-width="4"/>
+          <line x1="120" y1="90" x2="240" y2="170" stroke="#30363d" stroke-width="2"/>
+          <line x1="120" y1="300" x2="240" y2="170" stroke="#30363d" stroke-width="1.5"/>
+        </svg>
+        <div class="metanode" style="left:240px; top:170px; width:110px; height:110px; border-color:#bc8cff;"><span class="m-n">validation</span><span class="m-c">34 entities</span></div>
+        <div class="metanode" style="left:450px; top:120px; width:98px; height:98px; border-color:#76e3ea;"><span class="m-n">serialization</span><span class="m-c">28</span></div>
+        <div class="metanode" style="left:390px; top:280px; width:86px; height:86px; border-color:#f0883e;"><span class="m-n">config</span><span class="m-c">21</span></div>
+        <div class="metanode" style="left:620px; top:230px; width:82px; height:82px; border-color:#3fb950;"><span class="m-n">types</span><span class="m-c">19</span></div>
+        <div class="metanode" style="left:120px; top:90px; width:72px; height:72px; border-color:#d29922;"><span class="m-n">json…</span><span class="m-c">14</span></div>
+        <div class="metanode" style="left:120px; top:300px; width:62px; height:62px; border-color:#8b949e;"><span class="m-n">usage</span><span class="m-c">11</span></div>
+        <div style="position:absolute; right:12px; bottom:10px; font-family:var(--mono); font-size:10.5px; color:var(--muted);">edge width = inter-community links · double-click expands members in place</div>
+      </div>
+      <div class="frame-cap"><b>EntityType / community meta-nodes</b>, sized by member count, colored by dominant node set — from <span class="mono">/schema/inventory</span>, so it works before a full export exists (types-only, labeled as such). The 3k raw nodes are never the first paint. <span class="ev">[Atlas P1]</span> <span class="ev">[05: pre-export overview]</span></div>
+    </div>
+    <!-- F2 typeahead -->
+    <div class="frame">
+      <div class="frame-head"><span class="f-n">02</span><span class="f-t">Type "custom validators"</span><span class="f-k">typeahead</span></div>
+      <div class="frame-viz" style="padding:26px 30px;">
+        <div class="omnibox" style="width:100%; margin-bottom:0; border-radius:9px 9px 0 0;">
+          <span class="om-ic">⌕</span><span class="om-q">custom valid</span><span class="om-cursor"></span>
+        </div>
+        <div style="background:var(--panel); border:1px solid var(--border); border-top:none; border-radius:0 0 10px 10px;">
+          <div class="ta-row sel"><span class="t-dot" style="background:var(--orange)"></span><span class="t-name">field_validator</span><span class="t-desc">decorator registering custom validation for model fields…</span><span class="ibadge set">docs</span><span class="ibadge set">synthesis</span></div>
+          <div class="ta-row"><span class="t-dot" style="background:var(--orange)"></span><span class="t-name">model_validator</span><span class="t-desc">whole-model validation hook, mode before/after/wrap…</span><span class="ibadge set">docs</span></div>
+          <div class="ta-row"><span class="t-dot" style="background:var(--orange)"></span><span class="t-name">custom validation</span><span class="t-desc">concept: user-defined checks beyond type coercion…</span><span class="ibadge set">docs</span><span class="ibadge set">report</span></div>
+          <div class="ta-row"><span class="t-dot" style="background:var(--orange)"></span><span class="t-name">Annotated validators</span><span class="t-desc">validators attached via typing.Annotated metadata…</span><span class="ibadge set">docs</span></div>
+          <div class="ta-row" style="border-bottom:none;"><span class="t-dot" style="background:var(--violet)"></span><span class="t-name">Decorator</span><span class="t-desc">EntityType · 38 members</span></div>
+        </div>
+        <div style="margin-top:14px; font-family:var(--mono); font-size:11px; color:var(--muted);">matches on label + properties.description · ↵ materializes the selected hit</div>
+      </div>
+      <div class="frame-cap"><b>Search-first entry</b> — Bloom's answer to "how do I navigate?": you never browse to a node, you name it. Type-colored dots and set chips disambiguate before a single node renders. <span class="ev">[R3: search-first]</span> <span class="ev">[CS2: Bloom]</span></div>
+    </div>
+    <!-- F3 scene -->
+    <div class="frame">
+      <div class="frame-head"><span class="f-n">03</span><span class="f-t">Enter: the scene materializes</span><span class="f-k">ego · 1-hop · doi-capped</span></div>
+      <div class="frame-viz">
+        <svg style="position:absolute; inset:0; width:100%; height:100%;" viewBox="0 0 780 380" preserveAspectRatio="none">
+          <line x1="390" y1="190" x2="580" y2="100" stroke="#8b949e" stroke-opacity="0.55" stroke-width="2" vector-effect="non-scaling-stroke"/>
+          <line x1="390" y1="190" x2="600" y2="270" stroke="#8b949e" stroke-opacity="0.55" stroke-width="2" vector-effect="non-scaling-stroke"/>
+          <line x1="390" y1="190" x2="200" y2="110" stroke="#8b949e" stroke-opacity="0.55" stroke-width="2" vector-effect="non-scaling-stroke"/>
+          <line x1="390" y1="190" x2="180" y2="280" stroke="#8b949e" stroke-opacity="0.55" stroke-width="2.6" vector-effect="non-scaling-stroke"/>
+          <line x1="390" y1="190" x2="390" y2="50"  stroke="#8b949e" stroke-opacity="0.4" stroke-width="1" vector-effect="non-scaling-stroke"/>
+        </svg>
+        <div class="gnode focus" style="left:50%; top:50%; font-size:13px;"><span class="nd"></span>field_validator</div>
+        <div class="gnode" style="left:74.4%; top:26.3%; font-size:12px;"><span class="nd"></span>model_validator</div>
+        <div class="gnode etype" style="left:76.9%; top:71%; font-size:12px;"><span class="nd"></span>Decorator</div>
+        <div class="gnode" style="left:25.6%; top:29%; font-size:12px;"><span class="nd"></span>Annotated validators</div>
+        <div class="gnode" style="left:23.1%; top:73.7%; font-size:12px;"><span class="nd"></span>BaseModel</div>
+        <div class="gnode frontier" style="left:50%; top:13.2%; font-size:12px;"><span class="nd"></span>ValidationInfo<span class="plus">+4</span></div>
+        <div style="position:absolute; left:12px; bottom:10px; font-family:var(--mono); font-size:10.5px; color:var(--muted);">hit + ranked 1-hop context · focus pinned center · radial seeded from stored FA2 positions</div>
+      </div>
+      <div class="frame-cap"><b>~30–50 nodes maximum</b>, ranked by degree-of-interest. Everything else in the 3k-node graph stays unrendered. The scene state is already in the URL hash — as a <i>query</i>, so it re-resolves after the next cognify. <span class="ev">[05: scenes are queries]</span></div>
+    </div>
+    <!-- F4 expand -->
+    <div class="frame">
+      <div class="frame-head"><span class="f-n">04</span><span class="f-t">Right-click: expand by edge label</span><span class="f-k">frontier grows one decision at a time</span></div>
+      <div class="frame-viz">
+        <div class="gnode" style="left:28%; top:36%;"><span class="nd"></span>model_validator</div>
+        <div class="ctxmenu" style="left:33%; top:44%;">
+          <div class="cm-i"><span>expand all</span><span class="cm-c">12 nodes</span></div>
+          <div class="cm-i sel"><span>expand by edge label ▸</span><span class="cm-c"></span></div>
+          <div class="cm-i"><span>entities only</span><span class="cm-c">8 · skips plumbing</span></div>
+          <div class="cm-div"></div>
+          <div class="cm-i"><span>ask about selection</span><span class="cm-c">→ q</span></div>
+        </div>
+        <div class="ctxmenu" style="left:63%; top:50%;">
+          <div class="cm-i sel"><span>configured_by</span><span class="cm-c">2</span></div>
+          <div class="cm-i"><span>is_a</span><span class="cm-c">1</span></div>
+          <div class="cm-i"><span>runs_before ←</span><span class="cm-c">1</span></div>
+          <div class="cm-i"><span>implemented_via ←</span><span class="cm-c">1</span></div>
+        </div>
+        <div class="gnode frontier" style="left:78%; top:20%;"><span class="nd"></span>mode="before"</div>
+        <div class="gnode frontier" style="left:88%; top:34%;"><span class="nd"></span>mode="wrap"</div>
+        <div style="position:absolute; left:12px; bottom:10px; font-family:var(--mono); font-size:10.5px; color:var(--muted);">pulls in mode="before" and mode="wrap" · reversible · scene query records the expansion step</div>
+      </div>
+      <div class="frame-cap"><b>Growth is incremental and user-driven</b> — Bloom's expand-from-selection, with a drc twist: "entities only" skips DocumentChunk plumbing in one gesture. Each expansion appends <span class="mono">(label, type, edge)</span> to the scene query. <span class="ev">[CS2]</span> <span class="ev">[Atlas P2]</span></div>
+    </div>
+    <!-- F5 provenance -->
+    <div class="frame">
+      <div class="frame-head"><span class="f-n">05</span><span class="f-t">Click: evidence, one click away</span><span class="f-k">provenance panel</span></div>
+      <div class="frame-viz" style="padding:22px 26px;">
+        <div style="font-family:var(--mono); font-size:16px; font-weight:700; margin-bottom:10px;">field_validator <span class="ibadge ent" style="margin-left:8px;">Entity</span></div>
+        <div class="insp-sec" style="border-top:none; padding-top:2px;">
+          <div class="s-h">sources · provenance</div>
+          <div class="crumb"><span class="cr">Entity</span><span class="sep">→</span><span class="cr">chunk#12</span><span class="sep">→</span><span class="cr">validators.md <span class="dim">(docs)</span></span><span class="sep">→</span><span class="cr src">src a3f92c1b04de</span><span class="cconf exact">exact</span></div>
+          <div class="crumb" style="margin-top:5px;"><span class="cr">Entity</span><span class="sep">→</span><span class="cr">chunk#18</span><span class="sep">→</span><span class="cr">validators.md <span class="dim">(docs)</span></span><span class="sep">→</span><span class="cr src">src a3f92c1b04de</span><span class="cconf exact">exact</span></div>
+          <div class="crumb" style="margin-top:5px;"><span class="cr">Entity</span><span class="sep">→</span><span class="cr">chunk#31</span><span class="sep">→</span><span class="cr">synthesis/validation.md</span><span class="cconf revun">revision unknown</span></div>
+        </div>
+        <div style="background:var(--panel); border:1px solid rgba(118,227,234,0.4); border-radius:10px; padding:12px 16px; margin-top:14px;">
+          <div style="font-family:var(--mono); font-size:10.5px; color:var(--cyan); margin-bottom:6px;">content/a3f92c1b04de.md · slide-over · chunk#12</div>
+          <div style="font-family:var(--mono); font-size:12px; color:var(--muted); line-height:1.7;">…to attach a validator to a field, apply the<br><mark style="background:var(--cyan-dim); color:var(--cyan); padding:0 3px; border-radius:3px;">@field_validator decorator to a classmethod; it runs during validation and may transform the value</mark><br>before assignment. Multiple fields may share…</div>
+        </div>
+      </div>
+      <div class="frame-cap"><b>The chain the built-in visualize can't walk</b>: graph claim → supporting chunk → document → drc source record → the actual content file, chunk highlighted. Confidence is named at the joint, never implied. <span class="ev">[Atlas P3/P6]</span> <span class="ev">[05: confidence vocabulary]</span></div>
+    </div>
+    <!-- F6 diff -->
+    <div class="frame">
+      <div class="frame-head"><span class="f-n">06</span><span class="f-t">Press d: what did cognify change?</span><span class="f-k">scene-scoped diff · #3 → #4</span></div>
+      <div class="frame-viz">
+        <svg style="position:absolute; inset:0; width:100%; height:100%;" viewBox="0 0 780 380" preserveAspectRatio="none">
+          <line x1="330" y1="190" x2="500" y2="100" stroke="#8b949e" stroke-opacity="0.5" stroke-width="2" vector-effect="non-scaling-stroke"/>
+          <line x1="330" y1="190" x2="480" y2="280" stroke="#3fb950" stroke-opacity="0.8" stroke-width="2.4" vector-effect="non-scaling-stroke"/>
+          <line x1="330" y1="190" x2="150" y2="120" stroke="#f85149" stroke-opacity="0.55" stroke-width="1.6" stroke-dasharray="6 5" vector-effect="non-scaling-stroke"/>
+          <line x1="330" y1="190" x2="160" y2="290" stroke="#8b949e" stroke-opacity="0.5" stroke-width="2" vector-effect="non-scaling-stroke"/>
+          <line x1="500" y1="100" x2="480" y2="280" stroke="#d29922" stroke-opacity="0.7" stroke-width="2" vector-effect="non-scaling-stroke"/>
+        </svg>
+        <div class="gnode focus" style="left:42.3%; top:50%; font-size:12.5px;"><span class="nd"></span>field_validator</div>
+        <div class="gnode changed" style="left:64.1%; top:26.3%; font-size:12px;"><span class="nd"></span>mode="wrap" <span class="dim" style="font-size:10px;">Δ desc</span></div>
+        <div class="gnode added" style="left:61.5%; top:73.7%; font-size:12px;"><span class="nd"></span>ValidationInfo context</div>
+        <div class="gnode removed" style="left:19.2%; top:31.6%; font-size:12px;"><span class="nd"></span>@validator (legacy)</div>
+        <div class="gnode" style="left:20.5%; top:76.3%; font-size:12px;"><span class="nd"></span>BaseModel</div>
+        <div class="rewired">
+          <div class="rw-h">most rewired entities · #3→#4</div>
+          <div class="rw-r"><span>field_validator</span><span><span class="d-add">+3</span> <span class="d-rem">−1</span></span></div>
+          <div class="rw-r"><span>mode="wrap"</span><span><span class="d-add">+2</span> <span class="d-rem">−0</span></span></div>
+          <div class="rw-r"><span>@validator</span><span><span class="d-add">+0</span> <span class="d-rem">−2</span></span></div>
+          <div class="rw-r"><span>TypeAdapter</span><span><span class="d-add">+1</span> <span class="d-rem">−1</span></span></div>
+          <div style="font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:6px;">matched by label+type · confidence shown · click → scoped diff scene</div>
+        </div>
+        <div style="position:absolute; left:12px; bottom:10px; font-family:var(--mono); font-size:10.5px; color:var(--muted);"><span style="color:var(--green)">■ added</span> · <span style="color:var(--red)">■ removed (ghost)</span> · <span style="color:var(--amber)">■ changed</span> · gray unchanged · positions synced to newer snapshot</div>
+      </div>
+      <div class="frame-cap"><b>Static diff, no animation</b> — R4's verdict: dynamic-graph animation is where comprehension goes to die. Entry point is the global "most rewired" list; the canvas diff renders <b>only the scoped neighborhood</b>, positions synchronized to the newer snapshot (the DyNet trick). <span class="ev">[R4: diff&gt;animation]</span> <span class="ev">[05: diff scene-scoped]</span></div>
+    </div>
+  </div>
+</section>
+<!-- ============================== ACT 6 · DECISIONS ============================== -->
+<section id="decisions">
+  <div class="sec-head">
+    <span class="kicker">Act 05</span>
+    <h2>Eight decisions, with receipts</h2>
+    <div class="rule"></div>
+    <span class="aside">every one traceable to research, a case study, or an accepted critique</span>
+  </div>
+  <div class="dcards">
+    <div class="dcard"><div class="d-n">D·01</div><h3>Search-first, never the hairball</h3>
+      <p>The empty scene + omnibox is the front door; the full graph is <b>never rendered</b>. Global renders fail past ~200 nodes and this dataset is 3,033. Bloom's scene model is adopted as law, and Bloom's cold-start weakness is patched by decision D·03.</p>
+      <div class="d-ev"><span class="ev">[R3: search-first]</span> <span class="ev">[CS2: Bloom]</span> <span class="ev">[Atlas P1]</span></div></div>
+    <div class="dcard"><div class="d-n">D·02</div><h3>The ego scene is the workhorse</h3>
+      <p>Q1 ("what does it know about X?") is the top-ranked question, so its answer shape — <b>hit + ranked 1-hop, DOI-capped at 30–50 nodes, focus pinned, radial</b> — is the screen you live in. Expansion is per-edge-label, reversible, recorded.</p>
+      <div class="d-ev"><span class="ev">[Atlas §3]</span> <span class="ev">[CS2: expand-from-selection]</span></div></div>
+    <div class="dcard"><div class="d-n">D·03</div><h3>Communities as the overview</h3>
+      <p>InfraNodus's insight: the first paint should <b>already be an answer</b> — "your graph is about these six things." Louvain over the Entity–Entity projection, meta-nodes sized by count; betweenness picks the brokers; gap detection turns topology into the next harvest query.</p>
+      <div class="d-ev"><span class="ev">[CS2: InfraNodus]</span> <span class="ev">[Atlas §4]</span></div></div>
+    <div class="dcard"><div class="d-n">D·04</div><h3>Diff, not animation</h3>
+      <p>R4 surveyed dynamic-graph viz and the verdict was unambiguous: <b>animated transitions destroy comprehension</b>; small-multiple / union diffs win. Atlas ships a static, scene-scoped union overlay with positions synced to the newer snapshot and a ranked "most rewired" entry list.</p>
+      <div class="d-ev"><span class="ev">[R4: diff&gt;animation]</span> <span class="ev">[05: scene-scoped]</span></div></div>
+    <div class="dcard"><div class="d-n">D·05</div><h3>Lenses derived from node sets</h3>
+      <p>drc already tags every push — <span class="mono">docs, distilled, content, synthesis, log, report</span> — and the export carries the tags on every node. Lens chips are <b>generated from the data</b>, never hardcoded (the critique caught a 4-of-6 hardcode). Report lens = "what survived into the report."</p>
+      <div class="d-ev"><span class="ev cy">[R8: belongs_to_set verified]</span> <span class="ev">[05: accepted]</span> <span class="ev">[CS2: perspectives]</span></div></div>
+    <div class="dcard"><div class="d-n">D·06</div><h3>Scenes are queries — they survive re-cognify</h3>
+      <p>Cognee node ids are not stable across cognify runs. Scenes serialized as id lists would rot; scenes serialized as <b>{search, expansion steps, lenses, camera}</b> re-resolve against any snapshot. A missing label degrades to a note, never a broken link. Bookmarks stay honest for the life of the topic.</p>
+      <div class="d-ev"><span class="ev">[05: accepted]</span> <span class="ev">[Atlas §6]</span></div></div>
+    <div class="dcard"><div class="d-n">D·07</div><h3>Searches are lazy and priced</h3>
+      <p>Hosted credits are real money and the tenant returns <b>402 when exhausted</b>. So: snapshots power everything free; workbench tabs fire one billed search per explicit click (never three types at once); a per-session cost counter sits in the drawer; 402 maps to <span class="mono">CogneeCreditsError</span> with a visible banner.</p>
+      <div class="d-ev"><span class="ev">[Atlas P5]</span> <span class="ev">[05: triple-billing fixed]</span></div></div>
+    <div class="dcard"><div class="d-n">D·08</div><h3>sigma.js + graphology, MIT</h3>
+      <p>WebGL rendering that holds 3k/13k without breaking a sweat, a real graph model with Louvain + FA2 + betweenness in the same MIT family, from CDN with <b>zero Python deps added</b>. FA2 runs in a web worker once per snapshot; positions persist — spatial memory is a feature, not luck.</p>
+      <div class="d-ev"><span class="ev">[R2: stack survey]</span> <span class="ev">[Atlas P4]</span> <span class="ev">[05: FA2 resolved]</span></div></div>
+  </div>
+</section>
+
+<!-- ============================== ACT 7 · BUILD PLAN ============================== -->
+<section id="plan">
+  <div class="sec-head">
+    <span class="kicker">Act 06</span>
+    <h2>Build plan — spike first, then earn each phase</h2>
+    <div class="rule"></div>
+    <span class="aside">re-budgeted after critique · new code isolated in dr_cognee/dash/atlas*</span>
+  </div>
+  <div class="timeline">
+    <div class="tl-stage spike" style="flex: 0 0 460px;">
+      <div class="t-name">The spike · runs before anything</div>
+      <div class="t-days">2 h</div>
+      <ul>
+        <li>Compare <span class="mono">source_content_hash</span> from the graph export against <span class="mono">ingested.json</span> digests on the existing datasets</li>
+        <li><b>If they match:</b> the provenance join collapses to a dict lookup — most of v1's bulk evaporates</li>
+        <li><b>If not:</b> the ordered fallback plan (Act 07) applies as designed</li>
+        <li class="muted-li">this one check decides the provenance design — and gates the whole investment</li>
+      </ul>
+    </div>
+    <div class="tl-gate"><span class="g-arrow">⟶</span>gate<br>decides v1 shape</div>
+    <div class="tl-stage" style="flex: 1;">
+      <div class="t-name">v0 · the scene model</div>
+      <div class="t-days">2 days</div>
+      <ul>
+        <li><b>D5 local layer</b>: co-occurrence graph from <span class="mono">distilled/*.json</span> — atlas works pre-cognify, "local preview" banner</li>
+        <li>Snapshot fetch + cache (<span class="mono">viz/graph-&lt;n&gt;.json</span>, gzipped, property-stripped)</li>
+        <li>Omnibox → materialize → expand → inspector with edges-by-label</li>
+        <li>Node-set lenses (derived); FA2-in-worker + position persistence</li>
+        <li class="muted-li">no communities, no workbench, no provenance yet</li>
+      </ul>
+    </div>
+    <div class="tl-stage" style="flex: 1.15;">
+      <div class="t-name">v1 · evidence &amp; orientation</div>
+      <div class="t-days">+5 days</div>
+      <ul>
+        <li><b>Provenance breadcrumb joins — the bulk of the budget</b> (server-side, shared <span class="mono">provenance.py</span>, confidence vocabulary)</li>
+        <li>Overview meta-nodes + Louvain + analytics rail (brokers, counts)</li>
+        <li>Query workbench: lazy tabs, cost counter, verbose triplet overlay</li>
+        <li>Canned-query chips · URL scenes-as-queries</li>
+        <li class="muted-li">honest number: the original "+2–3 days" was called fantasy and re-budgeted</li>
+      </ul>
+    </div>
+    <div class="tl-stage" style="flex: 0.9;">
+      <div class="t-name">v1.5 · change &amp; gaps</div>
+      <div class="t-days">+2 days</div>
+      <ul>
+        <li>Scene-scoped diff + "most rewired" list (server-side compute)</li>
+        <li>Gap cards with "draft harvest query" buttons</li>
+        <li>"Ask about selection" → workbench handoff</li>
+        <li class="muted-li">ships only if v0/v1 are actually getting opened</li>
+      </ul>
+    </div>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <h3><span class="h-ic">⌁</span>Accepted client &amp; pipeline changes (small, named, agreed)</h3>
+      <div class="codelist">
+        <div class="c-row"><span class="c-what">CogneeClient.search + verbose / nodeName / topK</span><span class="c-why">pass-throughs the workbench needs; all verified live in the schema</span></div>
+        <div class="c-row"><span class="c-what">402 → CogneeCreditsError</span><span class="c-why">credit exhaustion becomes a typed error and a visible banner</span></div>
+        <div class="c-row"><span class="c-what">dash proxies Cognee on async httpx</span><span class="c-why">per-route timeout + error banner; no blocked event loop</span></div>
+        <div class="c-row"><span class="c-what">drc ingest --snapshot</span><span class="c-why">one flag: write viz/graph-&lt;n&gt;.json at push time</span></div>
+        <div class="c-row"><span class="c-what">record Cognee data-id in ingested.json at push</span><span class="c-why">the pipeline upgrade that makes provenance exact forever (recommendation, upgraded)</span></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3><span class="h-ic">◆</span>Standing risks, mitigated in the design</h3>
+      <div class="codelist">
+        <div class="c-row"><span class="c-what">node-id instability across cognify runs</span><span class="c-why">diff matches by label+type, confidence shown in the UI — never silent</span></div>
+        <div class="c-row"><span class="c-what">provenance join misses</span><span class="c-why">chain renders as far as it resolves; misses logged to a debug panel, not hidden</span></div>
+        <div class="c-row"><span class="c-what">hosted API drift (endpoints unversioned)</span><span class="c-why">one fixture test validates response shapes; failure = clear banner, not silent breakage</span></div>
+        <div class="c-row"><span class="c-what">viz/ shared-state sprawl</span><span class="c-why">chassis contract: version field on every file, snapshots keep last 5, one watcher owns invalidation</span></div>
+      </div>
+      <div style="margin-top:14px;"><span class="ev">[Atlas §5 risks]</span> <span class="ev">[05: cross-cutting]</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== ACT 8 · THE CRITICS ============================== -->
+<section id="critics">
+  <div class="sec-head">
+    <span class="kicker">Act 07</span>
+    <h2>What the critics said — and what changed</h2>
+    <div class="rule"></div>
+    <span class="aside">every finding got a verdict; the two hardest are here in full</span>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <h3 style="color:var(--red);">Objection 1 — the demand problem</h3>
+      <div class="quote">"Graph explorers demo beautifully, then go unopened. Graph browsing is the weakest-demand job of the three."
+        <span class="who">— the skeptic, feasibility critique · verdict: MODIFY (conceded in the pitch, not designed away)</span></div>
+      <p style="margin-top:18px;">The concession is structural, not rhetorical:</p>
+      <ul style="list-style:none; margin-top:10px;">
+        <li style="padding:7px 0 7px 26px; position:relative;"><span style="position:absolute; left:0; color:var(--cyan);">▸</span><b>Build order: 3rd of 3.</b> Mission and dossier ship first; atlas waits its turn and must justify it.</li>
+        <li style="padding:7px 0 7px 26px; position:relative;"><span style="position:absolute; left:0; color:var(--cyan);">▸</span><b>Named survival criteria.</b> The provenance breadcrumb and the gap cards are the two features that must earn reopening. If they don't get used, the atlas doesn't graduate past v0 — the criteria are written into the pitch, not implied.</li>
+        <li style="padding:7px 0 7px 26px; position:relative;"><span style="position:absolute; left:0; color:var(--cyan);">▸</span><b>The spike gates the investment.</b> Two hours of hash-checking before any of the 9 days is spent.</li>
+        <li style="padding:7px 0 7px 26px; position:relative;"><span style="position:absolute; left:0; color:var(--cyan);">▸</span>And the demand story is deliberately not "browsing": it's five specific questions, two of which (evidence, gaps) <i>no text interface answers well</i>.</li>
+      </ul>
+      <div style="margin-top:14px;"><span class="ev">[05: skeptic MODIFY]</span> <span class="ev">[Atlas §6: honest budget]</span></div>
+    </div>
+    <div class="panel">
+      <h3 style="color:var(--amber);">Objection 2 — "the join is built on a hashes-only manifest"</h3>
+      <div class="quote" style="border-left-color:var(--amber); font-size:19px;">"The provenance join assumes <span class="mono" style="font-size:16px;">ingested.json</span> can be matched to TextDocuments — but the manifest records only digests. Rated: threatening."
+        <span class="who">— feasibility critique · verdict: ACCEPT, plan reordered</span></div>
+      <p style="margin-top:16px;">Accepted in full, and the fix is <b>ordered</b> so cheap certainty precedes expensive engineering:</p>
+      <ol class="fixsteps">
+        <li><b>2-hour spike:</b> the export already carries <span class="mono">source_content_hash</span> on entity properties (verified live). If it matches the manifest digests, the "threatening" join is a <b>dict lookup</b> and the objection dissolves.</li>
+        <li><b>Else, v1 joins stable keys by re-hash</b> — docs / distilled / content files are immutable on disk, so re-hashing reproduces the digest. Synthesis / log / report artifacts get rewritten between pushes → labeled <b>"ingested artifact (revision unknown)"</b>; orphan TextDocuments from add-only re-pushes labeled <b>"superseded revision"</b> and excluded from counts by default, toggleable.</li>
+        <li><b>Pipeline upgrade:</b> record the Cognee data-id in <span class="mono">ingested.json</span> at push time — one line at push, exact provenance forever after.</li>
+      </ol>
+      <div style="margin-top:14px;"><span class="ev">[05: ordered provenance plan]</span> <span class="ev cy">[R8: hash field verified in export]</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== ACT 9 · VERDICT ============================== -->
+<section id="verdict">
+  <div class="sec-head">
+    <span class="kicker">Act 08</span>
+    <h2>Verdict</h2>
+    <div class="rule"></div>
+  </div>
+  <div class="verdict">
+    <div class="scores">
+      <div class="score"><div class="s-k"><b>DV</b>data viability</div><div class="s-v">5<span>/5</span></div><div class="segbar"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i></div><div class="s-k" style="margin-top:8px;">full export verified live; node sets, hashes &amp; weights all in one payload</div></div>
+      <div class="score"><div class="s-k"><b>DA</b>daily answerability</div><div class="s-v">5<span>/5</span></div><div class="segbar"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i></div><div class="s-k" style="margin-top:8px;">five ranked questions, each with a dedicated surface; evidence + gaps unserved elsewhere</div></div>
+      <div class="score"><div class="s-k"><b>BC</b>build cost</div><div class="s-v">3<span>/5</span></div><div class="segbar"><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i></div><div class="s-k" style="margin-top:8px;">2 + 5 + 2 days, honestly re-budgeted; provenance is the bulk; spike may shrink it</div></div>
+      <div class="score"><div class="s-k"><b>MD</b>maintenance drag</div><div class="s-v">4<span>/5</span></div><div class="segbar"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i></i></div><div class="s-k" style="margin-top:8px;">read-only over Cognee, snapshot-fed, fixture-pinned against API drift; zero new Python deps</div></div>
+      <div class="score"><div class="s-k"><b>WC</b>wide-canvas fit</div><div class="s-v">5<span>/5</span></div><div class="segbar"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i></div><div class="s-k" style="margin-top:8px;">rail + scene + inspector + drawer natively fills 3800px; diff side-by-side is free</div></div>
+    </div>
+    <div class="buildorder">
+      <div class="bo-k">Build order</div>
+      <div class="bo-v"><span class="th">THIRD</span> of three</div>
+      <div class="bo-d">After <b>mission</b> and <b>dossier</b>, gated on the <b>2-hour <span class="mono" style="font-size:14px;">source_content_hash</span> spike</b>.
+      Survival criteria on record: the provenance breadcrumb and the gap cards must earn the reopen.
+      Search first, expand on demand, evidence one click away — or it doesn't ship past v0.</div>
+    </div>
+  </div>
+  <footer>
+    <div class="f-h">Evidence base</div>
+    docs/viz/usecases/drc-atlas.md · the design (§6 revisions supersede §1–5)<br>
+    docs/viz/case-studies/graph-explorers.md · CS2: Bloom / InfraNodus / Cognee-visualize anatomy + pydantic walkthrough<br>
+    docs/viz/05-critique-response.md · every finding: verdict + decision; ordered provenance plan; consolidated spike list<br>
+    docs/viz/research/cognee-api-surface.md · R8: live-verified endpoint inventory (2026-07-07, read-only probes)<br>
+    <span style="color:var(--violet);">chip key</span> — [R2] graph-viz stack survey · [R3] exploration UX research · [R4] dynamic-graph research · [R8] API surface, live-verified · [CS2] explorer case study · [05] critique response · [Atlas §n] the design doc
+  </footer>
+</section>
+
+</div>
+<script>
+(function () {
+  // hairball generator — dense random mini-graph for the anti-goal panel
+  var svg = document.getElementById('hb-svg');
+  if (svg) {
+    var W = 640, H = 190, pts = [], i, n = 90;
+    function rnd(seed) { return function () { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }; }
+    var r = rnd(42);
+    for (i = 0; i < n; i++) pts.push([20 + r() * (W - 40), 14 + r() * (H - 28)]);
+    var frag = '';
+    for (i = 0; i < 260; i++) {
+      var a = pts[Math.floor(r() * n)], b = pts[Math.floor(r() * n)];
+      frag += '<line x1="' + a[0].toFixed(1) + '" y1="' + a[1].toFixed(1) + '" x2="' + b[0].toFixed(1) + '" y2="' + b[1].toFixed(1) + '" stroke="#8b949e" stroke-opacity="0.16" stroke-width="0.7"/>';
+    }
+    for (i = 0; i < n; i++) {
+      var c = r() < 0.75 ? '#f0883e' : '#bc8cff';
+      frag += '<circle cx="' + pts[i][0].toFixed(1) + '" cy="' + pts[i][1].toFixed(1) + '" r="2.4" fill="' + c + '" fill-opacity="0.55"/>';
+    }
+    svg.innerHTML = frag;
+  }
+
+  // lens chips toggle
+  document.querySelectorAll('[data-lens]').forEach(function (el) {
+    el.addEventListener('click', function () { el.classList.toggle('on'); });
+  });
+
+  // workbench tabs
+  document.querySelectorAll('[data-btab]').forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      document.querySelectorAll('[data-btab]').forEach(function (t) { t.classList.remove('on'); });
+      document.querySelectorAll('[data-bpanel]').forEach(function (p) { p.classList.remove('on'); });
+      tab.classList.add('on');
+      var panel = document.querySelector('[data-bpanel="' + tab.getAttribute('data-btab') + '"]');
+      if (panel) panel.classList.add('on');
+    });
+  });
+
+  // nav active highlight
+  var links = Array.prototype.slice.call(document.querySelectorAll('.nav a[href^="#"]'));
+  var sections = links.map(function (l) { return document.querySelector(l.getAttribute('href')); }).filter(Boolean);
+  if ('IntersectionObserver' in window) {
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          links.forEach(function (l) { l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id); });
+        }
+      });
+    }, { rootMargin: '-25% 0px -60% 0px' });
+    sections.forEach(function (s) { obs.observe(s); });
+  }
+})();
+</script>
+</body>
+</html>
