@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+from dr_cognee.cognee_client import CogneeCreditsError
 from dr_cognee.ingest import build_payloads, ingest_workspace, render_distilled
 from dr_cognee.models import (
     DistilledRecord,
@@ -27,9 +28,10 @@ DISTILLED = DistilledRecord(
 
 
 class StubCogneeClient:
-    def __init__(self) -> None:
+    def __init__(self, out_of_credits: bool = False) -> None:
         self.added: list[tuple[str, list[str], list[str] | None]] = []
         self.cognified = 0
+        self.out_of_credits = out_of_credits
 
     def ensure_dataset(self, name: str) -> str:
         return "ds-1"
@@ -38,6 +40,8 @@ class StubCogneeClient:
         self.added.append((dataset_id, texts, node_set))
 
     def cognify(self, dataset_id: str, background: bool = True) -> dict:
+        if self.out_of_credits:
+            raise CogneeCreditsError("Only $6.45 of credits remain.")
         self.cognified += 1
         return {}
 
@@ -122,6 +126,15 @@ def test_ingest_is_idempotent_via_manifest(workspace: Workspace) -> None:
     assert second.skipped == 3
     assert second.cognify_status == "no changes"
     assert client.cognified == 1
+
+
+def test_ingest_credits_blocked_keeps_statuses(workspace: Workspace) -> None:
+    store = SourceStore(workspace.sources_file)
+    record = add_distilled_source(workspace, store, "https://a.com/1", Relevance.HIGH, True)
+    result = ingest_workspace(workspace, store, StubCogneeClient(out_of_credits=True))
+    assert result.pushed == 3
+    assert result.cognify_status.startswith("blocked:")
+    assert store.load()[record.id].status == SourceStatus.DISTILLED
 
 
 def test_ingest_marks_sources_ingested(workspace: Workspace) -> None:
