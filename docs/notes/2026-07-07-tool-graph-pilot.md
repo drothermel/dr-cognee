@@ -1,0 +1,55 @@
+# Tool-graph pilot notes (running log)
+
+## Pydantic pilot (first tool)
+
+**Setup:** llms.txt found at `https://docs.pydantic.dev/latest/llms.txt` (curated, 88 pages).
+GitHub docs pull not needed — llms.txt coverage was complete (concepts, api, integrations,
+examples, errors, internals).
+
+**Iteration findings (fixed in code during pilot):**
+1. `pull-docs --llms` initially registered 0 sources: the vendored llms mirror skips
+   off-origin links by default, and pydantic's manifest lives on `docs.pydantic.dev` while
+   every link targets `pydantic.dev`. Fix: `pull_llms_docs` passes `allow_off_origin=True`
+   (we chose the manifest deliberately) and surfaces skipped links in the failure list.
+2. `drc distill` would have run 88 pointless LLM calls over docs pages. Fix:
+   `distill_pending` now skips `category=docs` sources — docs are ingested whole under the
+   `docs` node set; distillation is only for web-gathered extras.
+
+**Flow that worked:** init (5 facets) → pull-docs (88 docs) → 2 targeted gap-fill harvests
+(12 found, 10 scraped, 10 distilled; 1 reddit scrape unsupported as usual) → synthesis
+capability map per facet → ingest+cognify → verification queries → report.
+
+**Open questions / watch items:**
+- Cognify time for ~100-item ingests (measuring on this run).
+- Whether `docs` node-set separation is visible/queryable usefully in Cognee results.
+
+## llms.txt availability probe (for remaining tools)
+
+| Tool | llms.txt | Fallback |
+|---|---|---|
+| polars | none (404 on docs.pola.rs, pola.rs) | GitHub docs tree + firecrawl |
+| pydanticAI | https://ai.pydantic.dev/llms.txt (14KB) | — |
+| cognee | https://docs.cognee.ai/llms.txt (1.9KB, small) | GitHub topoteretes/cognee docs |
+| codex cli | https://developers.openai.com/codex/llms.txt (14KB) | — |
+| claude code | https://code.claude.com/docs/llms.txt (36KB) | — |
+
+## Cognee credits blocker (found during pydantic ingest)
+
+- All 105 pydantic artifacts pushed fine; `cognify` returned HTTP 402:
+  "Insufficient credits to run cognify. Only $6.45 of credits remain."
+- Storage is a non-issue (2.7MB / 1GB). It's compute credits on the hosted tenant.
+- Code hardening added: `CogneeCreditsError` (clean message instead of traceback),
+  ingest reports `cognify: blocked: ...` and leaves statuses un-flipped, and a new
+  standalone `drc cognify -w <ws>` re-triggers cognify without re-pushing (needed
+  because `ingest` only cognifies when it pushed something new).
+- Plan adaptation: all tool workspaces get built + pushed now; cognify + graph
+  verification queries deferred until credits are added. Finish with
+  `drc cognify -w research/<slug>` per workspace, then the verification queries.
+
+## Polars pilot (github docs path)
+
+- No llms.txt. GitHub pull of docs/source/user-guide initially collected 0 pages:
+  the repo-root mkdocs.yml nav doesn't map onto the docs_path subtree, and the
+  vendored collector only falls back to a tree walk when there is NO mkdocs config.
+- Fix in our wrapper (vendored module untouched): if nav filtering yields zero pages,
+  re-collect with mkdocs_config_path=None. Result: 71 user-guide pages registered.
