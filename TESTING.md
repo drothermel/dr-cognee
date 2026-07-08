@@ -11,10 +11,9 @@ no test hits a live API.
 
 ## Live smoke (Firecrawl + Anthropic + hosted Cognee)
 
-Requires `FIRECRAWL_API_KEY`, `COGNEE_BASE_URL`, `COGNEE_API_KEY`, and `ANTHROPIC_API_KEY`
-(the distill step uses the Anthropic SDK's standard credential resolution; if only a
-differently-named key is exported, run e.g.
-`ANTHROPIC_API_KEY="$MARIMO_ANTHROPIC_API_KEY" uv run python scripts/smoke_live.py`).
+Requires `FIRECRAWL_API_KEY`, `COGNEE_BASE_URL`, `COGNEE_API_KEY`, and `OPENAI_API_KEY`
+(distill defaults to OpenAI `gpt-5.4-nano`; `drc distill --provider anthropic` switches to
+the Anthropic SDK, which then needs `ANTHROPIC_API_KEY`-resolvable credentials).
 
 ```bash
 uv run python scripts/smoke_live.py

@@ -11,6 +11,7 @@ dependencies = [
     "anthropic>=0.116.0",
     "firecrawl-py>=4.31.0",
     "httpx>=0.28.1",
+    "openai>=2.44.0",
     "pydantic>=2.13.4",
     "pyyaml>=6.0.3",
     "typer>=0.26.8",

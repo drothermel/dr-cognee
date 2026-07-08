@@ -10,7 +10,12 @@ from firecrawl import Firecrawl
 from pydantic import TypeAdapter
 
 from dr_cognee.cognee_client import DEFAULT_SEARCH_TYPE, CogneeClient
-from dr_cognee.distill import DISTILL_MODEL, AnthropicDistillClient, distill_pending
+from dr_cognee.distill import (
+    DEFAULT_PROVIDER,
+    DistillProvider,
+    distill_pending,
+    make_distill_client,
+)
 from dr_cognee.firecrawl_ops import harvest, scrape
 from dr_cognee.ingest import ingest_workspace
 from dr_cognee.models import (
@@ -174,14 +179,16 @@ def add_source(
 
 @app.command()
 def distill(
-    model: str = typer.Option(DISTILL_MODEL, "--model"),
+    provider: DistillProvider = typer.Option(DEFAULT_PROVIDER, "--provider"),
+    model: str | None = typer.Option(None, "--model", help="Defaults per provider."),
     limit: int | None = typer.Option(None, "--limit"),
     workspace: Path | None = WorkspaceOption,
 ) -> None:
     """Distill scraped sources into structured takeaway records."""
     ws = resolve_workspace(workspace)
     store = SourceStore(ws.sources_file)
-    result = distill_pending(store, ws, AnthropicDistillClient(model=model), limit=limit)
+    client = make_distill_client(provider=provider, model=model)
+    result = distill_pending(store, ws, client, limit=limit)
     typer.echo(f"distilled: {result.distilled}  failed: {len(result.failed)}")
     for failure in result.failed:
         typer.echo(f"  failed: {failure}")

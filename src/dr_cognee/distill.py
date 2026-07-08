@@ -1,18 +1,29 @@
 """LLM distillation of scraped sources into structured takeaway records."""
 
 from datetime import UTC, datetime
+from enum import StrEnum
 from typing import Protocol
 
 import anthropic
+import openai
 from pydantic import BaseModel, ConfigDict
 
 from dr_cognee.models import DistilledRecord, Relevance, SourceStatus
 from dr_cognee.sources import SourceStore
 from dr_cognee.workspace import Workspace
 
-DISTILL_MODEL = "claude-opus-4-8"
+ANTHROPIC_DISTILL_MODEL = "claude-opus-4-8"
+OPENAI_DISTILL_MODEL = "gpt-5.4-nano"
 DISTILL_MAX_TOKENS = 8000
 MAX_CONTENT_CHARS = 60_000
+
+
+class DistillProvider(StrEnum):
+    OPENAI = "openai"
+    ANTHROPIC = "anthropic"
+
+
+DEFAULT_PROVIDER = DistillProvider.OPENAI
 
 DISTILL_SYSTEM_PROMPT = """You are distilling one research source for a knowledge base.
 
@@ -52,7 +63,7 @@ class DistillClient(Protocol):
 
 
 class AnthropicDistillClient:
-    def __init__(self, model: str = DISTILL_MODEL) -> None:
+    def __init__(self, model: str = ANTHROPIC_DISTILL_MODEL) -> None:
         self._client = anthropic.Anthropic()
         self.model = model
 
@@ -68,6 +79,32 @@ class AnthropicDistillClient:
         if parsed is None:
             raise ValueError(f"no parsed output (stop_reason={response.stop_reason})")
         return parsed
+
+
+class OpenAIDistillClient:
+    def __init__(self, model: str = OPENAI_DISTILL_MODEL) -> None:
+        self._client = openai.OpenAI()
+        self.model = model
+
+    def distill(self, prompt: str) -> DistillOutput:
+        response = self._client.responses.parse(
+            model=self.model,
+            instructions=DISTILL_SYSTEM_PROMPT,
+            input=prompt,
+            text_format=DistillOutput,
+        )
+        parsed = response.output_parsed
+        if parsed is None:
+            raise ValueError(f"no parsed output (status={response.status})")
+        return parsed
+
+
+def make_distill_client(
+    provider: DistillProvider = DEFAULT_PROVIDER, model: str | None = None
+) -> DistillClient:
+    if provider == DistillProvider.OPENAI:
+        return OpenAIDistillClient(model=model or OPENAI_DISTILL_MODEL)
+    return AnthropicDistillClient(model=model or ANTHROPIC_DISTILL_MODEL)
 
 
 def build_distill_prompt(question: str, title: str, url: str, content: str) -> str:
@@ -122,9 +159,9 @@ def distill_pending(
 def _distill_with_retry(client: DistillClient, prompt: str) -> DistillOutput:
     try:
         return client.distill(prompt)
-    except anthropic.RateLimitError:
+    except (anthropic.RateLimitError, openai.RateLimitError):
         return client.distill(prompt)
-    except anthropic.APIStatusError as e:
+    except (anthropic.APIStatusError, openai.APIStatusError) as e:
         if e.status_code >= 500:
             return client.distill(prompt)
         raise

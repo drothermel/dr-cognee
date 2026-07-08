@@ -3,9 +3,15 @@ from pathlib import Path
 import pytest
 
 from dr_cognee.distill import (
+    ANTHROPIC_DISTILL_MODEL,
+    OPENAI_DISTILL_MODEL,
+    AnthropicDistillClient,
     DistillOutput,
+    DistillProvider,
+    OpenAIDistillClient,
     build_distill_prompt,
     distill_pending,
+    make_distill_client,
     to_distilled_record,
 )
 from dr_cognee.models import (
@@ -57,6 +63,21 @@ def scraped_record(workspace: Workspace, store: SourceStore, url: str) -> Source
     store.append_new([record])
     workspace.content_path(record.id).write_text("some content")
     return record
+
+
+def test_make_distill_client_selects_provider_and_default_model(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "test")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test")
+    default = make_distill_client()
+    assert isinstance(default, OpenAIDistillClient)
+    assert default.model == OPENAI_DISTILL_MODEL
+    anthropic_client = make_distill_client(DistillProvider.ANTHROPIC)
+    assert isinstance(anthropic_client, AnthropicDistillClient)
+    assert anthropic_client.model == ANTHROPIC_DISTILL_MODEL
+    override = make_distill_client(DistillProvider.OPENAI, model="gpt-5.1-codex-mini")
+    assert override.model == "gpt-5.1-codex-mini"
 
 
 def test_to_distilled_record_carries_fields() -> None:

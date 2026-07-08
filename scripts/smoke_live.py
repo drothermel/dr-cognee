@@ -12,7 +12,7 @@ import typer
 from firecrawl import Firecrawl
 
 from dr_cognee.cognee_client import CogneeClient
-from dr_cognee.distill import AnthropicDistillClient, distill_pending
+from dr_cognee.distill import distill_pending, make_distill_client
 from dr_cognee.firecrawl_ops import harvest, scrape
 from dr_cognee.ingest import ingest_workspace
 from dr_cognee.models import HarvestSpec, QuerySpec, SourceStatus, TopicConfig
@@ -28,7 +28,7 @@ app = typer.Typer()
 
 @app.command()
 def main(root: Path = Path("research")) -> None:
-    for var in ("FIRECRAWL_API_KEY", "COGNEE_BASE_URL", "COGNEE_API_KEY"):
+    for var in ("FIRECRAWL_API_KEY", "COGNEE_BASE_URL", "COGNEE_API_KEY", "OPENAI_API_KEY"):
         if not os.environ.get(var):
             raise typer.BadParameter(f"missing env var {var}")
 
@@ -55,7 +55,7 @@ def main(root: Path = Path("research")) -> None:
     else:
         typer.echo("[3/6] scrape skipped (no new found sources; resuming prior run)")
 
-    distill_result = distill_pending(store, ws, AnthropicDistillClient(), limit=1)
+    distill_result = distill_pending(store, ws, make_distill_client(), limit=1)
     typer.echo(
         f"[4/6] distill distilled={distill_result.distilled} failed={distill_result.failed}"
     )
@@ -66,7 +66,7 @@ def main(root: Path = Path("research")) -> None:
         + already_distilled[SourceStatus.INGESTED]
     )
     if not have_distilled:
-        typer.echo("SMOKE FAILED: no distilled sources (check ANTHROPIC_API_KEY)")
+        typer.echo("SMOKE FAILED: no distilled sources (check the distill provider's API key)")
         raise typer.Exit(1)
 
     client = CogneeClient()
