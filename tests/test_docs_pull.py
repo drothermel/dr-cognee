@@ -136,3 +136,15 @@ def test_pull_github_docs_registers_pages(
     assert record.category == SourceCategory.DOCS
     assert record.found_via.startswith("github docs")
     assert workspace.content_path(record.id).read_text() == "# Usage docs"
+
+
+def test_pull_github_docs_falls_back_when_nav_filters_everything(
+    workspace, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    empty = github_summary(tmp_path).model_copy(update={"pages": []})
+    fallback_pages = github_summary(tmp_path).pages
+    monkeypatch.setattr(docs_pull, "mirror_github_docs", lambda url, root, co, **kw: empty)
+    monkeypatch.setattr(docs_pull, "collect_markdown_pages", lambda **kw: fallback_pages)
+    store = SourceStore(workspace.sources_file)
+    result = pull_github_docs(store, workspace, "https://github.com/o/r/tree/main/docs")
+    assert result.new == 1
