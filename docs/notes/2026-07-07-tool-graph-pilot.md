@@ -53,3 +53,17 @@ capability map per facet → ingest+cognify → verification queries → report.
   vendored collector only falls back to a tree walk when there is NO mkdocs config.
 - Fix in our wrapper (vendored module untouched): if nav filtering yields zero pages,
   re-collect with mkdocs_config_path=None. Result: 71 user-guide pages registered.
+
+## pydantic-ai run + credit economics
+
+- 162 llms.txt docs + 20 distilled extras; 188 artifacts cognified; verification query
+  correct (tools/output_type/deps/retries all match docs).
+- Docs are far newer than most web tutorials (capabilities as primary extension point,
+  A2A moved to fasta2a, harness/agent-spec layers) — the docs-first approach earns its keep.
+- Credit economics discovery: after main cognify, a 2-item follow-up push was blocked at
+  $12.36 remaining -> the credit gate estimates on TOTAL dataset size, not the incremental
+  delta. Operational rule: get everything into the dataset BEFORE first cognify; treat
+  re-cognify of big datasets as expensive.
+- Recurring quirk: GRAPH_COMPLETION answers embellish "practitioner evidence" framing
+  (LinkedIn/ServiceNow examples not in sources) across datasets — treat graph answers as
+  organizers, verify claims against distilled records (same caveat as acceptance run).
