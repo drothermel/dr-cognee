@@ -5,12 +5,19 @@ from typing import Protocol
 
 from pydantic import BaseModel, ConfigDict, RootModel
 
-from dr_cognee.models import DistilledRecord, Relevance, SourceRecord, SourceStatus
+from dr_cognee.models import (
+    DistilledRecord,
+    Relevance,
+    SourceCategory,
+    SourceRecord,
+    SourceStatus,
+)
 from dr_cognee.sources import SourceStore
 from dr_cognee.workspace import Workspace
 
 NODE_SET_DISTILLED = "distilled"
 NODE_SET_CONTENT = "content"
+NODE_SET_DOCS = "docs"
 NODE_SET_SYNTHESIS = "synthesis"
 NODE_SET_LOG = "log"
 NODE_SET_REPORT = "report"
@@ -69,6 +76,16 @@ def build_payloads(workspace: Workspace, store: SourceStore) -> list[IngestItem]
     items = []
     records = store.load()
     for record in records.values():
+        content_path = workspace.content_path(record.id)
+        # docs pages are already-clean reference text: ingest them whole, no distillation
+        if record.category == SourceCategory.DOCS and content_path.exists():
+            items.append(
+                IngestItem(
+                    key=f"docs:{record.id}",
+                    text=content_path.read_text(),
+                    node_set=[NODE_SET_DOCS],
+                )
+            )
         distilled_path = workspace.distilled_path(record.id)
         if not distilled_path.exists():
             continue
@@ -80,10 +97,10 @@ def build_payloads(workspace: Workspace, store: SourceStore) -> list[IngestItem]
                 node_set=[NODE_SET_DISTILLED],
             )
         )
-        content_path = workspace.content_path(record.id)
         if (
             record.depth_flag
             and record.relevance == Relevance.HIGH
+            and record.category != SourceCategory.DOCS
             and content_path.exists()
         ):
             items.append(
@@ -156,4 +173,8 @@ def ingest_workspace(
     for record in store.pending(SourceStatus.DISTILLED):
         record.status = SourceStatus.INGESTED
         store.update(record)
+    for record in store.pending(SourceStatus.SCRAPED):
+        if record.category == SourceCategory.DOCS:
+            record.status = SourceStatus.INGESTED
+            store.update(record)
     return result
