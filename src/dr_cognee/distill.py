@@ -8,7 +8,7 @@ import anthropic
 import openai
 from pydantic import BaseModel, ConfigDict
 
-from dr_cognee.models import DistilledRecord, Relevance, SourceStatus
+from dr_cognee.models import DistilledRecord, Relevance, SourceCategory, SourceStatus
 from dr_cognee.sources import SourceStore
 from dr_cognee.workspace import Workspace
 
@@ -126,7 +126,10 @@ def distill_pending(
     limit: int | None = None,
 ) -> DistillBatchResult:
     result = DistillBatchResult()
-    pending = store.pending(SourceStatus.SCRAPED)
+    # docs pages are ingested whole (see ingest.build_payloads); never distill them
+    pending = [
+        r for r in store.pending(SourceStatus.SCRAPED) if r.category != SourceCategory.DOCS
+    ]
     if limit is not None:
         pending = pending[:limit]
     for record in pending:

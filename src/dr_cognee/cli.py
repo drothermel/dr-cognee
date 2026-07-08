@@ -16,6 +16,7 @@ from dr_cognee.distill import (
     distill_pending,
     make_distill_client,
 )
+from dr_cognee.docs_pull import pull_github_docs, pull_llms_docs
 from dr_cognee.firecrawl_ops import harvest, scrape
 from dr_cognee.ingest import ingest_workspace
 from dr_cognee.models import (
@@ -151,6 +152,37 @@ def scrape_cmd(
 
 
 @app.command()
+def pull_docs(
+    llms: list[str] = typer.Option([], "--llms", help="llms.txt manifest URL (repeatable)."),
+    github: list[str] = typer.Option(
+        [], "--github", help="GitHub tree URL for a docs dir (repeatable)."
+    ),
+    workspace: Path | None = WorkspaceOption,
+) -> None:
+    """Pull docs directly (no Firecrawl): llms.txt manifests and GitHub repo docs."""
+    if not llms and not github:
+        raise typer.BadParameter("Pass --llms and/or --github")
+    ws = resolve_workspace(workspace)
+    store = SourceStore(ws.sources_file)
+    for manifest_url in llms:
+        result = pull_llms_docs(store, ws, manifest_url)
+        typer.echo(
+            f"llms {manifest_url}: new={result.new} seen={result.seen} "
+            f"failed={len(result.failed)}"
+        )
+        for failure in result.failed:
+            typer.echo(f"  failed: {failure}")
+    for tree_url in github:
+        result = pull_github_docs(store, ws, tree_url)
+        typer.echo(
+            f"github {tree_url}: new={result.new} seen={result.seen} "
+            f"failed={len(result.failed)}"
+        )
+        for failure in result.failed:
+            typer.echo(f"  failed: {failure}")
+
+
+@app.command()
 def add_source(
     url: str,
     category: SourceCategory = typer.Option(SourceCategory.WEB, "--category"),
@@ -206,6 +238,20 @@ def ingest(
     typer.echo(
         f"pushed: {result.pushed}  skipped: {result.skipped}  cognify: {result.cognify_status}"
     )
+
+
+@app.command()
+def cognify(
+    wait: bool = typer.Option(True, "--wait/--no-wait"),
+    workspace: Path | None = WorkspaceOption,
+) -> None:
+    """(Re-)run cognify on the topic dataset without pushing anything."""
+    ws = resolve_workspace(workspace)
+    client = CogneeClient()
+    dataset_id = client.ensure_dataset(ws.config.dataset_name)
+    client.cognify(dataset_id, background=True)
+    status = client.wait_for_cognify(dataset_id) if wait else "started"
+    typer.echo(f"cognify: {status}")
 
 
 @app.command()

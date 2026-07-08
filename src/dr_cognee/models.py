@@ -11,6 +11,7 @@ class SourceCategory(StrEnum):
     GITHUB = "github"
     RESEARCH = "research"
     PDF = "pdf"
+    DOCS = "docs"
 
 
 class SourceStatus(StrEnum):
