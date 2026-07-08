@@ -77,3 +77,14 @@ capability map per facet → ingest+cognify → verification queries → report.
 - Deliberately skipped the 122-page REST-endpoint-stub shard to stay under the credit
   gate; 216 artifacts cognified successfully, verification query PASS.
 - Repo has no real docs tree — docs live on docs.cognee.ai only; README added manually.
+
+## codex-cli run
+
+- llms.txt at developers.openai.com/codex/llms.txt worked directly with pull-docs
+  (95 pages; links were direct .md twins, no shard workaround needed). GitHub docs/
+  tree is mostly redirect stubs (15 pages, low value). 135 artifacts staged+pushed.
+- Cognify blocked at $7.24 remaining; recovery: `drc cognify -w research/codex-cli`.
+- Note: repo's 600KB codex-manual.md pulled whole and will dominate that dataset's
+  cognify cost — candidate for exclusion/split if credits stay tight.
+- Synthesis quality high: two-axis sandbox×approval model, ~200-key config.toml
+  inventory, MCP both directions, hooks/skills/plugins/subagents inventory.
