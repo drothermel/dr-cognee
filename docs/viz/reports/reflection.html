@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reflection — drc viz process retrospective</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400;1,8..60,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel-2: #1c2129;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #f0883e;
+    --accent-dim: rgba(240, 136, 62, 0.14);
+    --accent-line: rgba(240, 136, 62, 0.42);
+    --warm-gray: #b8b0a6;
+    --warm-gray-dim: #6e6a63;
+    --good: #7ee787;
+    --good-dim: rgba(126, 231, 135, 0.12);
+    --bad: #f85149;
+    --bad-dim: rgba(248, 81, 73, 0.10);
+    --sans: "Space Grotesk", system-ui, sans-serif;
+    --serif: "Source Serif 4", Georgia, serif;
+    --mono: "Fira Code", ui-monospace, monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  code, .mono {
+    font-family: var(--mono);
+    font-feature-settings: "liga" 1, "calt" 1;
+    font-size: 0.88em;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.08em 0.38em;
+    color: var(--warm-gray);
+    white-space: nowrap;
+  }
+
+  h1, h2, h3, h4 { font-family: var(--sans); }
+
+  /* ---------- fixed nav ---------- */
+  nav.topnav {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 100;
+    background: rgba(22, 27, 34, 0.92);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-family: var(--sans);
+    font-size: 13px;
+    max-width: 240px;
+  }
+  nav.topnav .nav-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  nav.topnav a {
+    display: block;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 3px 0;
+    border-left: 2px solid transparent;
+    padding-left: 10px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  nav.topnav a:hover { color: var(--text); border-left-color: var(--accent); }
+  nav.topnav a.active { color: var(--accent); border-left-color: var(--accent); }
+
+  /* ---------- page shell ---------- */
+  .shell {
+    max-width: 3640px;
+    margin: 0 auto;
+    padding: 0 60px 120px 60px;
+  }
+
+  /* ---------- hero ---------- */
+  header.hero {
+    padding: 90px 0 56px 0;
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: minmax(700px, 1.5fr) minmax(900px, 1fr);
+    gap: 80px;
+    align-items: end;
+  }
+  .hero-kicker {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 18px;
+  }
+  .hero h1 {
+    font-size: 76px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.02;
+    margin-bottom: 26px;
+  }
+  .hero h1 .dim { color: var(--warm-gray-dim); font-weight: 500; }
+  .hero-run {
+    font-family: var(--serif);
+    font-size: 22px;
+    line-height: 1.55;
+    color: var(--warm-gray);
+    max-width: 66ch;
+  }
+  .hero-run strong { color: var(--text); font-weight: 600; }
+  .hero-meta {
+    margin-top: 22px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .hero-meta span { color: var(--accent); }
+
+  .hero-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .stat {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--accent);
+    border-radius: 10px;
+    padding: 24px 22px 20px 22px;
+  }
+  .stat .big {
+    font-family: var(--sans);
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 10px;
+  }
+  .stat .big small { font-size: 20px; color: var(--warm-gray); font-weight: 500; }
+  .stat .label {
+    font-family: var(--sans);
+    font-size: 14.5px;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+  .stat .label b { color: var(--text); font-weight: 600; }
+
+  /* ---------- section headings ---------- */
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+    margin: 72px 0 28px 0;
+  }
+  .section-head h2 {
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .section-head .rule {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--accent-line), transparent);
+  }
+  .section-head .tag {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  /* ---------- three-lane grid ---------- */
+  .lanes {
+    display: grid;
+    grid-template-columns: minmax(760px, 1fr) minmax(820px, 1.02fr) minmax(760px, 1fr);
+    gap: 44px;
+    align-items: start;
+  }
+  .lane-head {
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding-bottom: 14px;
+    margin-bottom: 22px;
+    border-bottom: 2px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .lane-head .count { font-family: var(--mono); font-size: 12px; color: var(--muted); text-transform: none; letter-spacing: 0; }
+  .lane-worked .lane-head { color: var(--good); border-bottom-color: rgba(126, 231, 135, 0.35); }
+  .lane-narrative .lane-head { color: var(--accent); border-bottom-color: var(--accent-line); }
+  .lane-wrong .lane-head { color: var(--bad); border-bottom-color: rgba(248, 81, 73, 0.35); }
+
+  /* keeper cards */
+  .keeper {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--good);
+    border-radius: 10px;
+    padding: 24px 26px 22px 26px;
+    margin-bottom: 20px;
+  }
+  .keeper .k-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--good);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .keeper h3 {
+    font-size: 19px;
+    font-weight: 600;
+    line-height: 1.35;
+    margin-bottom: 10px;
+  }
+  .keeper p {
+    font-size: 16px;
+    color: var(--warm-gray);
+    line-height: 1.62;
+  }
+  .keeper p + p { margin-top: 10px; }
+  .keeper p strong { color: var(--text); font-weight: 600; }
+  .keeper .facts {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .keeper .fact {
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--muted);
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+  }
+  .keeper .fact b { color: var(--good); font-weight: 600; }
+  .keeper .fact code { background: transparent; border: none; padding: 0; color: var(--warm-gray); }
+
+  /* wrong→fix cards */
+  .wrong {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--bad);
+    border-radius: 10px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .wrong .w-top { padding: 24px 26px 18px 26px; }
+  .wrong .w-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--bad);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .wrong h3 {
+    font-size: 19px;
+    font-weight: 600;
+    line-height: 1.35;
+    margin-bottom: 10px;
+  }
+  .wrong p {
+    font-size: 16px;
+    color: var(--warm-gray);
+    line-height: 1.62;
+  }
+  .wrong p strong { color: var(--text); font-weight: 600; }
+  .wrong .w-fix {
+    background: var(--good-dim);
+    border-top: 1px dashed rgba(126, 231, 135, 0.35);
+    padding: 16px 26px 18px 26px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .wrong .w-fix .fix-arrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--good);
+    text-transform: uppercase;
+    white-space: nowrap;
+    padding-top: 2px;
+  }
+  .wrong .w-fix p { font-size: 15.5px; color: var(--text); }
+  .wrong .w-fix p em { color: var(--warm-gray); }
+
+  /* narrative center lane */
+  .narrative {
+    font-size: 18.5px;
+    line-height: 1.75;
+  }
+  .narrative .lede {
+    font-size: 22px;
+    line-height: 1.6;
+    color: var(--text);
+    margin-bottom: 26px;
+  }
+  .narrative p { margin-bottom: 22px; color: var(--warm-gray); }
+  .narrative p strong { color: var(--text); font-weight: 600; }
+  .narrative p em { color: var(--text); }
+  .narrative .drop::first-letter {
+    font-family: var(--sans);
+    font-size: 64px;
+    font-weight: 700;
+    float: left;
+    line-height: 0.85;
+    padding: 6px 12px 0 0;
+    color: var(--accent);
+  }
+
+  .pipeline {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px 26px;
+    margin: 8px 0 30px 0;
+  }
+  .pipeline .p-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .pipeline ol {
+    list-style: none;
+    counter-reset: step;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 6px;
+    align-items: center;
+  }
+  .pipeline li {
+    counter-increment: step;
+    font-family: var(--sans);
+    font-size: 14px;
+    color: var(--text);
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 14px 6px 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pipeline li::before {
+    content: counter(step);
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--bg);
+    background: var(--accent);
+    border-radius: 999px;
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+  }
+  .pipeline li.milestone { border-color: var(--accent-line); background: var(--accent-dim); }
+  .pipeline .p-foot {
+    margin-top: 14px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .pipeline .p-foot b { color: var(--accent); }
+
+  .pull {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-dim);
+    border-radius: 0 10px 10px 0;
+    padding: 22px 28px;
+    margin: 28px 0;
+    font-size: 20px;
+    line-height: 1.6;
+    color: var(--text);
+    font-style: italic;
+  }
+  .pull .attr {
+    display: block;
+    margin-top: 10px;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-style: normal;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .narr-sub {
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 34px 0 16px 0;
+    padding-top: 26px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ---------- alternatives strip ---------- */
+  .alt-strip-wrap { position: relative; }
+  .alt-strip {
+    display: flex;
+    gap: 28px;
+    overflow-x: auto;
+    padding: 6px 6px 26px 6px;
+    scroll-snap-type: x proximity;
+    scrollbar-color: var(--accent) var(--panel);
+    scrollbar-width: thin;
+  }
+  .alt-strip::-webkit-scrollbar { height: 8px; }
+  .alt-strip::-webkit-scrollbar-track { background: var(--panel); border-radius: 4px; }
+  .alt-strip::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; }
+  .alt-card {
+    flex: 0 0 880px;
+    scroll-snap-align: start;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 30px 34px 28px 34px;
+    display: flex;
+    flex-direction: column;
+  }
+  .alt-card .alt-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 14px;
+  }
+  .alt-card .alt-letter {
+    font-family: var(--sans);
+    font-size: 52px;
+    font-weight: 700;
+    color: var(--warm-gray-dim);
+    line-height: 1;
+  }
+  .alt-card .alt-letter span { color: var(--accent); }
+  .alt-card h3 {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 6px 0 12px 0;
+  }
+  .alt-card .alt-body {
+    font-size: 17px;
+    line-height: 1.68;
+    color: var(--warm-gray);
+    flex: 1;
+  }
+  .alt-card .alt-body strong { color: var(--text); font-weight: 600; }
+  .alt-card .alt-body em { color: var(--text); }
+  .badge {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 7px 14px;
+    border-radius: 999px;
+    white-space: nowrap;
+    border: 1px solid;
+  }
+  .badge.adopt      { color: var(--good); border-color: rgba(126,231,135,0.5); background: var(--good-dim); }
+  .badge.partial    { color: var(--accent); border-color: var(--accent-line); background: var(--accent-dim); }
+  .badge.consider   { color: #d2a8ff; border-color: rgba(210,168,255,0.45); background: rgba(210,168,255,0.10); }
+  .badge.no         { color: var(--bad); border-color: rgba(248,81,73,0.5); background: var(--bad-dim); }
+  .badge.situational{ color: var(--warm-gray); border-color: var(--border); background: var(--panel-2); }
+  .alt-card .alt-verdict-line {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--border);
+    font-family: var(--mono);
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+  .alt-card .alt-verdict-line b { color: var(--text); }
+  .strip-hint {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .strip-hint span { color: var(--accent); }
+
+  /* ---------- uncomfortable question ---------- */
+  .thesis {
+    margin-top: 84px;
+    background: linear-gradient(135deg, var(--panel) 0%, #1a1610 100%);
+    border: 1px solid var(--accent-line);
+    border-radius: 16px;
+    padding: 70px 90px;
+    display: grid;
+    grid-template-columns: minmax(500px, 0.85fr) minmax(900px, 1.6fr);
+    gap: 90px;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .thesis::before {
+    content: "?";
+    position: absolute;
+    right: 40px;
+    top: -60px;
+    font-family: var(--sans);
+    font-size: 420px;
+    font-weight: 700;
+    color: rgba(240, 136, 62, 0.05);
+    line-height: 1;
+    pointer-events: none;
+  }
+  .thesis .t-kicker {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 18px;
+  }
+  .thesis h2 {
+    font-size: 52px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.08;
+  }
+  .thesis h2 .dim { color: var(--warm-gray-dim); }
+  .thesis .t-body { font-size: 20.5px; line-height: 1.72; color: var(--warm-gray); }
+  .thesis .t-body p { margin-bottom: 20px; }
+  .thesis .t-body p strong { color: var(--text); font-weight: 600; }
+  .thesis .t-body p em { color: var(--text); }
+  .thesis .t-verdict {
+    margin-top: 8px;
+    padding: 24px 30px;
+    background: var(--accent-dim);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 10px 10px 0;
+    font-size: 23px;
+    line-height: 1.55;
+    color: var(--text);
+    font-weight: 500;
+  }
+  .thesis .t-verdict b { color: var(--accent); font-weight: 700; }
+
+  /* ---------- amendments ---------- */
+  .amendments {
+    margin-top: 56px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 36px 44px 32px 44px;
+  }
+  .amendments h2 {
+    font-size: 21px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .amendments .a-sub {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-bottom: 24px;
+  }
+  .amend-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+  }
+  .amend {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .amend .check {
+    flex: 0 0 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: var(--good-dim);
+    border: 1px solid rgba(126,231,135,0.5);
+    color: var(--good);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 2px;
+  }
+  .amend .a-text { font-family: var(--sans); font-size: 15px; line-height: 1.5; color: var(--text); }
+  .amend .a-text small { display: block; margin-top: 5px; font-family: var(--mono); font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+
+  /* ---------- footer ---------- */
+  footer {
+    margin-top: 80px;
+    padding-top: 28px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    gap: 40px;
+  }
+  footer span b { color: var(--accent); font-weight: 500; }
+
+  @media (max-width: 2200px) {
+    .lanes { grid-template-columns: 1fr 1.05fr 1fr; gap: 32px; }
+    header.hero { grid-template-columns: 1fr; gap: 40px; }
+    .thesis { grid-template-columns: 1fr; gap: 40px; padding: 50px 56px; }
+    .amend-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 1400px) {
+    .lanes { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 52px; }
+    .hero-stats { grid-template-columns: 1fr; }
+    .amend-grid { grid-template-columns: 1fr; }
+    .alt-card { flex-basis: 86vw; }
+    nav.topnav { display: none; }
+    .shell { padding: 0 28px 80px 28px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="topnav" id="topnav">
+  <div class="nav-title">Reflection</div>
+  <a href="#hero">The run</a>
+  <a href="#lanes">Worked / narrative / wrong</a>
+  <a href="#alternatives">Alternative approaches</a>
+  <a href="#thesis">The uncomfortable question</a>
+  <a href="#amendments">Amendments adopted</a>
+</nav>
+
+<div class="shell">
+
+  <!-- ================= HERO ================= -->
+  <header class="hero" id="hero">
+    <div>
+      <div class="hero-kicker">drc visualization run &middot; process retrospective &middot; report 5 of 5</div>
+      <h1>Reflection <span class="dim">— what I'd keep, what I'd fix, what I'd ask.</span></h1>
+      <p class="hero-run">
+        One day, <strong>~16 subagents</strong>: framework &rarr; data inventory &rarr; my own candidate
+        brainstorm &rarr; 8 parallel research agents &rarr; synthesis &rarr; rubric selection &rarr;
+        3 case studies &rarr; 3 full design docs &rarr; 2 adversarial critics &rarr; a decision pass on
+        every finding &rarr; revised designs &rarr; 5 pitch/process/reflection HTMLs built by agents
+        reading the docs off disk. This is the honest retrospective on the <em>process</em>, not the designs.
+      </p>
+      <div class="hero-meta">2026-07-07 &middot; written after the design phase closed, while the pitch HTMLs rendered &middot; voice: <span>the orchestrator, first person</span></div>
+    </div>
+    <div class="hero-stats">
+      <div class="stat">
+        <div class="big">1<small> stale doc</small></div>
+        <div class="label"><b>poisoned 1 critique.</b> R8 invalidated the data inventory's central caveat; I never circled back. The UX critic built its most severe atlas finding on the stale sentence.</div>
+      </div>
+      <div class="stat">
+        <div class="big">4<small> spikes</small></div>
+        <div class="label"><b>gate 3 weeks of build.</b> One day of spikes — all runnable against data already on disk — retires the riskiest bets before any build week starts.</div>
+      </div>
+      <div class="stat">
+        <div class="big">2<small> hours</small></div>
+        <div class="label"><b>of live API probing changed the selection.</b> R8's read-only calls settled the biggest unknown and killed a false assumption docs would never have caught.</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= THREE LANES ================= -->
+  <div class="section-head" id="lanes">
+    <h2>The ledger</h2>
+    <div class="rule"></div>
+    <div class="tag">keep &middot; narrative &middot; fix</div>
+  </div>
+
+  <div class="lanes">
+
+    <!-- ========== LEFT LANE: WHAT WORKED ========== -->
+    <div class="lane lane-worked">
+      <div class="lane-head">What worked — keep doing <span class="count">6 keepers</span></div>
+
+      <div class="keeper">
+        <div class="k-num">Keeper 01 &middot; highest-value agent of the run</div>
+        <h3>The code-grounded skeptic</h3>
+        <p>The feasibility critic read <code>sources.py</code>/<code>ingest.py</code>/<code>docs_pull.py</code>
+        <strong>and the four real workspaces on disk</strong>, and found things no amount of careful design
+        would have surfaced. Four design-breaking facts, all sitting in the repo the whole time:</p>
+        <div class="facts">
+          <div class="fact"><b>Torn reads guaranteed:</b> <code>SourceStore.update</code> is a non-atomic truncate-then-write</div>
+          <div class="fact"><b>71/88 in polars:</b> docs sources are born <code>scraped</code> and never distilled</div>
+          <div class="fact"><b>~5 vs 263 id citations:</b> tool-graph reports cite <code>[synthesis/*.md]</code>, not source ids</div>
+          <div class="fact"><b>Hashes only:</b> the ingest manifest carries hashes, nothing else</div>
+        </div>
+      </div>
+
+      <div class="keeper">
+        <div class="k-num">Keeper 02</div>
+        <h3>Live verification beat documentation reading</h3>
+        <p>R8 probed the hosted tenant's <code>openapi.json</code> and made real GET calls instead of trusting
+        docs. It settled the project's biggest unknown — <strong>graph export: yes, verified, 3k nodes in one
+        call</strong> — and killed a false assumption (the INSIGHTS search type no longer exists). Two hours of
+        read-only probing changed the entire selection calculus.</p>
+      </div>
+
+      <div class="keeper">
+        <div class="k-num">Keeper 03</div>
+        <h3>Brainstorming candidates <em>before</em> research landed</h3>
+        <p><code>02-usecase-candidates.md</code> was written while agents were still running, so the use-case
+        space came from the problem structure (moments &times; data shapes), not from whatever the agents
+        happened to find. Research then <strong>validated</strong> the bundles instead of dictating them — and
+        where it changed things (D5 demoted from fallback to preview layer), the delta was visible.</p>
+      </div>
+
+      <div class="keeper">
+        <div class="k-num">Keeper 04</div>
+        <h3>Critique before pitch-building</h3>
+        <p>Two threatening and ~10 material findings got fixed in the designs before a single line of pitch
+        HTML existed. The pitches now carry <strong>honest budgets</strong> (v1 estimates roughly doubled) and
+        "what the critics said" sections. Reversed order would have shipped confident wrongness.</p>
+      </div>
+
+      <div class="keeper">
+        <div class="k-num">Keeper 05</div>
+        <h3>Docs-as-you-go made delegation cheap</h3>
+        <p>Because every phase wrote its artifact to <code>docs/viz/</code>, the five HTML builders needed
+        <strong>zero conversation context</strong> — just file paths. The workspace, not the chat, was the
+        source of truth. (This is, pleasingly, the same lesson drc itself embodies.)</p>
+      </div>
+
+      <div class="keeper">
+        <div class="k-num">Keeper 06</div>
+        <h3>Convergent evidence from overlapping agents</h3>
+        <p>R1 and R7 independently arrived at the same architecture (local FastAPI, file-watch &rarr; SSE,
+        zero storage); R1 and R6 independently arrived at master-detail + counts-not-percents. The overlap
+        I'd half-considered trimming became <strong>the strongest signal in synthesis</strong>: independent
+        agreement is worth its token cost.</p>
+      </div>
+    </div>
+
+    <!-- ========== CENTER LANE: NARRATIVE ========== -->
+    <div class="lane lane-narrative">
+      <div class="lane-head">What actually happened <span class="count">the narrative</span></div>
+
+      <div class="narrative">
+        <p class="lede drop">This run was fully autonomous by request: one day to take drc from "we should
+        visualize this" to three critiqued, revised, budgeted pitches. The retrospective below is written
+        with the pitch HTMLs still rendering — close enough to the work to remember the exact failures,
+        far enough to see the shape.</p>
+
+        <div class="pipeline">
+          <div class="p-title">The run, compressed</div>
+          <ol>
+            <li>Framework</li>
+            <li>Data inventory <em>(from code)</em></li>
+            <li>My own candidate brainstorm</li>
+            <li class="milestone">8 parallel research agents</li>
+            <li>Synthesis</li>
+            <li class="milestone">Rubric selection (3 use cases)</li>
+            <li>3 case-study agents</li>
+            <li>3 full design docs</li>
+            <li class="milestone">2 adversarial critics (UX + code-grounded feasibility)</li>
+            <li>Decision pass on every finding</li>
+            <li>Revised designs</li>
+            <li>5 pitch/process/reflection HTMLs, built from disk</li>
+          </ol>
+          <div class="p-foot"><b>~16 subagents total</b> &middot; portfolio: drc mission / drc atlas / drc dossier, one shared FastAPI chassis</div>
+        </div>
+
+        <p>The structure mostly held. The left lane is what earned its place; the right lane is what I'd
+        run differently, each failure paired with the fix that was either adopted mid-run or is adopted
+        now, in this document. The honest headline is that <strong>the best and worst moments of the run
+        share a root cause: the real data on disk.</strong> The feasibility critic's four design-breaking
+        facts came from reading the actual workspaces; my worst mistake was designing against
+        <code>models.py</code> instead of profiling those same workspaces in hour one.</p>
+
+        <div class="pull">
+          Clean, correct, and misleading — that's what a data inventory read off the models is.
+          The distribution facts that mattered were on disk the whole time.
+          <span class="attr">— on failure 2, the schema-vs-data trap</span>
+        </div>
+
+        <p>The second thread is <em>ordering</em>. Everything good about the run was an ordering decision:
+        candidates before research, critique before pitches, verification before trust. Everything bad was
+        an ordering omission: profiling after design, spikes after critique, doc updates after "later." The
+        process amendments at the bottom of this page are all, in one way or another, "move this step
+        earlier."</p>
+
+        <p>The third thread is <em>economics</em>. Wave-1 agents relayed full documents through my context
+        and I paid for every research doc twice; the HTML wave fixed it by having agents write their own
+        files and return five-line summaries. The case studies were maybe 40% restatement of wave-1
+        findings — real value in the other 60% (screen anatomies, walkthroughs, CS2's verification of
+        Cognee's actual visualize template source), but a wave that should have been folded into the
+        first.</p>
+
+        <div class="narr-sub">Where this leaves the process</div>
+
+        <p>If I strip the run to its load-bearing moves, I get: <strong>a skeptic with repo access, a live
+        probe of the one API that mattered, my own hypothesis written before the evidence arrived, and a
+        workspace of docs any agent could pick up cold.</strong> Those four survive any re-design of the
+        process. The rest — wave counts, agent counts, the exact phase boundaries — is negotiable, and the
+        alternatives strip below negotiates it.</p>
+
+        <p>And then there is the question the critique forced, which no amount of process tuning answers —
+        rendered in full at the bottom of this page, because it is the actual thesis of this report:
+        research produced conviction about <em>shape</em>; only usage produces conviction about
+        <em>value</em>.</p>
+      </div>
+    </div>
+
+    <!-- ========== RIGHT LANE: WHAT WENT WRONG ========== -->
+    <div class="lane lane-wrong">
+      <div class="lane-head">What went wrong &rarr; the fix <span class="count">5 failures, 5 fixes</span></div>
+
+      <div class="wrong">
+        <div class="w-top">
+          <div class="w-num">Failure 01 &middot; stale ground truth</div>
+          <h3>I let a ground-truth doc go stale, and it poisoned a critique</h3>
+          <p>R8's findings invalidated the central caveat of <code>01-data-inventory.md</code> ("graph export
+          not available — biggest feasibility unknown"), and I didn't circle back to update it. The UX critic
+          then built its <strong>most severe atlas finding</strong> on the stale sentence.</p>
+        </div>
+        <div class="w-fix">
+          <div class="fix-arrow">Fix &rarr;</div>
+          <p>Adopted mid-run, worth institutionalizing: when new evidence invalidates a foundational doc,
+          <em>the update happens in the same turn as saving the evidence.</em></p>
+        </div>
+      </div>
+
+      <div class="wrong">
+        <div class="w-top">
+          <div class="w-num">Failure 02 &middot; schemas over data</div>
+          <h3>I designed against the models, not the data</h3>
+          <p>My data inventory came from reading <code>models.py</code> and <code>workspace.py</code> —
+          clean, correct, and misleading. The real workspaces (which existed on disk the whole time!) held
+          the distribution facts that mattered: most sources in tool workspaces never pass through distill;
+          real reports vary wildly in citation density. <strong>The feasibility critic did the workspace
+          profiling I should have done in hour one.</strong></p>
+        </div>
+        <div class="w-fix">
+          <div class="fix-arrow">Fix &rarr;</div>
+          <p>The data inventory phase should include profiling actual instances, not just schemas —
+          <em>a 20-minute script over <code>research/</code></em>.</p>
+        </div>
+      </div>
+
+      <div class="wrong">
+        <div class="w-top">
+          <div class="w-num">Failure 03 &middot; paying twice</div>
+          <h3>Token-expensive relay of research docs</h3>
+          <p>Wave-1 agents returned full documents in their final messages, which I then re-emitted verbatim
+          into files — <strong>paying for every research doc twice</strong>. The HTML wave fixed this (agents
+          Write their own files, return a 5-line summary).</p>
+        </div>
+        <div class="w-fix">
+          <div class="fix-arrow">Fix &rarr;</div>
+          <p>Any agent producing a &gt;500-word artifact should write it to disk itself; the coordinator
+          gets a summary and spot-checks.</p>
+        </div>
+      </div>
+
+      <div class="wrong">
+        <div class="w-top">
+          <div class="w-num">Failure 04 &middot; late de-risking</div>
+          <h3>Spike-thinking arrived late</h3>
+          <p>The critique pass produced the consolidated "1 day of spikes gates 3 weeks of builds" list —
+          watcher torture test, <code>source_content_hash</code> check, citation-coverage script, rapidfuzz
+          hit-rate. All four are runnable against data already on disk, and all four should have been
+          <strong>in the design template</strong>.</p>
+        </div>
+        <div class="w-fix">
+          <div class="fix-arrow">Fix &rarr;</div>
+          <p>Amend the template itself: <em>"&sect;5 must name the riskiest bet and the cheapest spike that
+          retires it."</em> The template has been amended in my head; it should be amended in the doc for
+          next time.</p>
+        </div>
+      </div>
+
+      <div class="wrong">
+        <div class="w-top">
+          <div class="w-num">Failure 05 &middot; redundant wave</div>
+          <h3>Case studies were half-redundant</h3>
+          <p>Wave-2's three case studies produced real value — the concrete screen anatomies and fictional
+          walkthroughs fed the pitch mockups directly, and CS2 uniquely verified Cognee's visualize template
+          source — but <strong>maybe 40% of their content restated wave-1 findings</strong>.</p>
+        </div>
+        <div class="w-fix">
+          <div class="fix-arrow">Fix &rarr;</div>
+          <p>Fold "include one concrete walkthrough + exact screen anatomy of the single best exemplar" into
+          the wave-1 prompts, and reserve wave-2 for <em>verification-style deep dives only</em>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= ALTERNATIVES STRIP ================= -->
+  <div class="section-head" id="alternatives">
+    <h2>If I ran this again — alternative approaches</h2>
+    <div class="rule"></div>
+    <div class="tag">5 counterfactuals, each with a verdict</div>
+  </div>
+  <div class="strip-hint"><span>&larr; scroll &rarr;</span> &middot; five ways this run could have been structured, and whether I'd take each one</div>
+
+  <div class="alt-strip-wrap">
+    <div class="alt-strip">
+
+      <div class="alt-card">
+        <div class="alt-top">
+          <div>
+            <div class="alt-letter"><span>A</span></div>
+            <h3>Data-first</h3>
+          </div>
+          <div class="badge adopt">Would adopt</div>
+        </div>
+        <div class="alt-body">
+          <p>Phase 0 becomes: profile the real workspaces with scripts — status distributions, citation
+          formats, file sizes, manifest shapes — and probe the live API. <em>Then</em> write the framework.</p>
+        </div>
+        <div class="alt-verdict-line"><b>Why adopt:</b> half the critique findings would have been design
+        <b>inputs</b> instead of design corrections. This is failure 02 turned into a starting move.</div>
+      </div>
+
+      <div class="alt-card">
+        <div class="alt-top">
+          <div>
+            <div class="alt-letter"><span>B</span></div>
+            <h3>Prototype-first</h3>
+          </div>
+          <div class="badge consider">Consider — mission only</div>
+        </div>
+        <div class="alt-body">
+          <p>For a personal tool with live data sitting on disk, a half-day throwaway cockpit spike might
+          teach more than two research agents. The rubric and market scan earn their cost for the
+          <strong>portfolio</strong> decision, but the watcher plumbing questions were always going to be
+          settled by code, not prose.</p>
+        </div>
+        <div class="alt-verdict-line"><b>Verdict:</b> a hybrid — research the selection, prototype the
+        riskiest slice during the design phase — is probably optimal.</div>
+      </div>
+
+      <div class="alt-card">
+        <div class="alt-top">
+          <div>
+            <div class="alt-letter"><span>C</span></div>
+            <h3>Structured outputs over free markdown</h3>
+          </div>
+          <div class="badge partial">Would adopt partially</div>
+        </div>
+        <div class="alt-body">
+          <p>Findings-style agents — the critics, the API surveyor — could return schema-validated objects
+          (<code>finding/severity/evidence/fix</code>), making the decision pass <strong>mechanical instead
+          of editorial</strong>.</p>
+        </div>
+        <div class="alt-verdict-line"><b>The partial:</b> survey-style agents should stay free-form —
+        their nuance <b>is</b> the value.</div>
+      </div>
+
+      <div class="alt-card">
+        <div class="alt-top">
+          <div>
+            <div class="alt-letter"><span>D</span></div>
+            <h3>Fewer, deeper agents</h3>
+          </div>
+          <div class="badge no">Would not adopt</div>
+        </div>
+        <div class="alt-body">
+          <p>Collapsing 8 wave-1 topics into 4 broader ones would halve coordination cost — but it would
+          <strong>lose the independence that made convergence meaningful</strong> (keeper 06), and single
+          agents skim when given two fields to cover.</p>
+        </div>
+        <div class="alt-verdict-line"><b>Why not:</b> the R1/R7 and R1/R6 independent agreements were the
+        strongest signal in synthesis. Merging the topics deletes the signal to save the tokens.</div>
+      </div>
+
+      <div class="alt-card">
+        <div class="alt-top">
+          <div>
+            <div class="alt-letter"><span>E</span></div>
+            <h3>Interactive checkpoints</h3>
+          </div>
+          <div class="badge situational">Situational</div>
+        </div>
+        <div class="alt-body">
+          <p>This run was fully autonomous by request. With the user present, two checkpoints would have
+          earned their interruption cost: <strong>after selection</strong> (before three design deep-dives)
+          and <strong>after critique</strong> (the accepted-changes list rewrote real scope).</p>
+        </div>
+        <div class="alt-verdict-line"><b>Everything else</b> was better off autonomous.</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= THE UNCOMFORTABLE QUESTION ================= -->
+  <section class="thesis" id="thesis">
+    <div>
+      <div class="t-kicker">The uncomfortable question &middot; the thesis of this report</div>
+      <h2>Build one week of it, <span class="dim">then look at which tab stays open.</span></h2>
+    </div>
+    <div class="t-body">
+      <p>Three pitches totaling <strong>~3 weeks of build effort</strong> now exist for a personal tool whose
+      owner has a finite hobby budget. The critique's sharpest cross-cutting point — build the
+      <strong>shared-chassis v0 week</strong> and let usage decide which v1 exists — is really a statement
+      about this whole exercise:</p>
+      <p>the research produced conviction about <em>shape</em>, but only usage produces conviction about
+      <em>value</em>.</p>
+      <div class="t-verdict">The honest summary of three weeks of design work is: <b>build one week of it</b>,
+      then look at which tab stays open.</div>
+    </div>
+  </section>
+
+  <!-- ================= AMENDMENTS ================= -->
+  <section class="amendments" id="amendments">
+    <h2>Process amendments adopted</h2>
+    <div class="a-sub">five changes carried forward to the next multi-agent run — each traces to a failure above</div>
+    <div class="amend-grid">
+      <div class="amend">
+        <div class="check">&#10003;</div>
+        <div class="a-text">Update foundational docs in the same turn as saving invalidating evidence.
+          <small>from failure 01 &middot; the stale inventory episode</small>
+        </div>
+      </div>
+      <div class="amend">
+        <div class="check">&#10003;</div>
+        <div class="a-text">Profile real data, not just schemas, in the inventory phase.
+          <small>from failure 02 &middot; a 20-minute script over research/</small>
+        </div>
+      </div>
+      <div class="amend">
+        <div class="check">&#10003;</div>
+        <div class="a-text">Agents write their own &gt;500-word artifacts; coordinator gets a summary + spot-checks.
+          <small>from failure 03 &middot; the token-relay inefficiency</small>
+        </div>
+      </div>
+      <div class="amend">
+        <div class="check">&#10003;</div>
+        <div class="a-text">Spike question added to the design template: &sect;5 names the riskiest bet + the cheapest spike that retires it.
+          <small>from failure 04 &middot; late spike-thinking</small>
+        </div>
+      </div>
+      <div class="amend">
+        <div class="check">&#10003;</div>
+        <div class="a-text">Walkthroughs + exemplar screen anatomy folded into wave-1 prompts; wave-2 for verification only.
+          <small>from failure 05 &middot; the half-redundant case studies</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Reflection &middot; report 5 of 5 in the drc visualization series &middot; source: <b>docs/viz/06-reflection.md</b></span>
+    <span>written 2026-07-07, after the design phase closed and while the pitch HTMLs rendered</span>
+  </footer>
+
+</div>
+
+<script>
+  // Active-section highlighting for the fixed nav.
+  (function () {
+    var links = Array.prototype.slice.call(document.querySelectorAll('#topnav a'));
+    var sections = links.map(function (a) {
+      return document.querySelector(a.getAttribute('href'));
+    });
+    function onScroll() {
+      var pos = window.scrollY + window.innerHeight * 0.28;
+      var activeIdx = 0;
+      for (var i = 0; i < sections.length; i++) {
+        if (sections[i] && sections[i].offsetTop <= pos) activeIdx = i;
+      }
+      links.forEach(function (a, i) {
+        a.classList.toggle('active', i === activeIdx);
+      });
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  })();
+
+  // Horizontal wheel-scroll for the alternatives strip.
+  (function () {
+    var strip = document.querySelector('.alt-strip');
+    if (!strip) return;
+    strip.addEventListener('wheel', function (e) {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && strip.scrollWidth > strip.clientWidth) {
+        strip.scrollLeft += e.deltaY;
+        e.preventDefault();
+      }
+    }, { passive: false });
+  })();
+</script>
+
+</body>
+</html>
