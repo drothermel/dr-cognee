@@ -241,6 +241,20 @@ def ingest(
 
 
 @app.command()
+def cognify(
+    wait: bool = typer.Option(True, "--wait/--no-wait"),
+    workspace: Path | None = WorkspaceOption,
+) -> None:
+    """(Re-)run cognify on the topic dataset without pushing anything."""
+    ws = resolve_workspace(workspace)
+    client = CogneeClient()
+    dataset_id = client.ensure_dataset(ws.config.dataset_name)
+    client.cognify(dataset_id, background=True)
+    status = client.wait_for_cognify(dataset_id) if wait else "started"
+    typer.echo(f"cognify: {status}")
+
+
+@app.command()
 def query(
     text: str,
     search_type: str = typer.Option(DEFAULT_SEARCH_TYPE, "--type"),

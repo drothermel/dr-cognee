@@ -22,6 +22,10 @@ class CogneeTimeoutError(TimeoutError):
     pass
 
 
+class CogneeCreditsError(RuntimeError):
+    """The hosted tenant has insufficient credits for the requested operation."""
+
+
 class CogneeClient:
     def __init__(self, base_url: str | None = None, api_key: str | None = None) -> None:
         base_url = base_url or os.environ["COGNEE_BASE_URL"]
@@ -51,6 +55,8 @@ class CogneeClient:
             COGNIFY_PATH,
             json={"datasetIds": [dataset_id], "runInBackground": background},
         )
+        if response.status_code == httpx.codes.PAYMENT_REQUIRED:
+            raise CogneeCreditsError(response.json().get("detail", response.text))
         response.raise_for_status()
         return response.json()
 

@@ -5,6 +5,8 @@ from typing import Protocol
 
 from pydantic import BaseModel, ConfigDict, RootModel
 
+from dr_cognee.cognee_client import CogneeCreditsError
+
 from dr_cognee.models import (
     DistilledRecord,
     Relevance,
@@ -163,7 +165,13 @@ def ingest_workspace(
     manifest_json = IngestManifest(dict(sorted(manifest.items()))).model_dump_json(indent=1)
     workspace.ingest_manifest_file.write_text(manifest_json)
     if result.pushed:
-        client.cognify(dataset_id, background=True)
+        try:
+            client.cognify(dataset_id, background=True)
+        except CogneeCreditsError as e:
+            # pushes stand (manifest already updated); statuses stay un-flipped so a
+            # later `drc cognify` + re-ingest can finish the job
+            result.cognify_status = f"blocked: {e}"
+            return result
         if wait:
             result.cognify_status = client.wait_for_cognify(dataset_id)
         else:
