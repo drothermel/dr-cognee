@@ -56,7 +56,9 @@ def pull_llms_docs(
 ) -> DocsPullResult:
     result = DocsPullResult()
     mirror_root = workspace.root / MIRROR_DIR / LLMS_MIRROR_SUBDIR
-    summary = mirror_manifest(manifest_url, mirror_root, force=True)
+    # We chose the manifest deliberately, so follow its links even when the docs'
+    # canonical host differs from the manifest host (common: docs.X.dev -> X.dev).
+    summary = mirror_manifest(manifest_url, mirror_root, allow_off_origin=True, force=True)
     downloaded_by_url = {
         r.url: r
         for r in summary.results
@@ -79,6 +81,8 @@ def pull_llms_docs(
     for download in summary.results:
         if download.status == MirrorStatus.FAILED:
             result.failed.append(f"{download.url}: {download.message}")
+    for skipped in summary.skipped_links:
+        result.failed.append(f"{skipped.url}: skipped ({skipped.reason})")
     return result
 
 

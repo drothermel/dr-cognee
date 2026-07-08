@@ -113,6 +113,21 @@ def test_distill_failure_keeps_source_scraped(workspace: Workspace) -> None:
     assert store.load()[record.id].status == SourceStatus.SCRAPED
 
 
+def test_distill_skips_docs_sources(workspace: Workspace) -> None:
+    store = SourceStore(workspace.sources_file)
+    record = SourceRecord(
+        id=source_id("https://docs.a.dev/page"), url="https://docs.a.dev/page", title="Docs",
+        category=SourceCategory.DOCS, found_via="llms.txt [m]", status=SourceStatus.SCRAPED,
+    )
+    store.append_new([record])
+    workspace.content_path(record.id).write_text("docs content")
+    client = StubDistillClient()
+    result = distill_pending(store, workspace, client)
+    assert client.calls == 0
+    assert result.distilled == 0
+    assert store.load()[record.id].status == SourceStatus.SCRAPED
+
+
 def test_distill_skips_missing_content(workspace: Workspace) -> None:
     store = SourceStore(workspace.sources_file)
     record = scraped_record(workspace, store, "https://a.com/1")
